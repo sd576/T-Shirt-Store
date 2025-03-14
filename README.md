@@ -1,6 +1,6 @@
 # T-Shirt Store 🛒👕
 
-A simple and responsive T-Shirt eCommerce website. Built with [tech stack you used].
+A simple and responsive T-Shirt eCommerce website.
 
 ## 🚀 Features
 
