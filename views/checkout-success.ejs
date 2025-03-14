@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Order #<%= order.order_number %> - Success</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        background-color: #f8f9fa;
+      }
+
+      .confirmation-container {
+        margin-top: 80px;
+      }
+
+      .order-id {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #28a745;
+      }
+
+      footer {
+        margin-top: 80px;
+        padding: 20px;
+        text-align: center;
+        background-color: #343a40;
+        color: #fff;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Navbar -->
+    <header class="navbar navbar-dark bg-dark p-3">
+      <div class="container">
+        <a class="navbar-brand" href="/">The T Shirt Store</a>
+        <nav>
+          <a class="text-white me-3" href="/cart">Cart</a>
+          <a class="text-white" href="/account/orders">My Orders</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Confirmation Content -->
+    <main class="container text-center confirmation-container">
+      <h1 class="display-4 mb-4">Thank You for Your Order!</h1>
+
+      <% if (order && shippingAddress && orderItems.length > 0) { %>
+
+        <p class="lead mb-3">Your awesome T-Shirts will be on their way soon!</p>
+
+        <!-- Order Info -->
+        <p class="order-id">
+          Your Order Number: <%= order.order_number %>
+        </p>
+        <p><strong>Status:</strong> <%= order.status %></p>
+        <p><strong>Order Date:</strong> <%= order.order_date %></p>
+        <p><strong>Total Price:</strong> £<%= order.total_amount.toFixed(2) %></p>
+
+        <!-- Ordered Items Table -->
+        <h3 class="mt-5">Order Summary</h3>
+        <table class="table table-striped mt-4">
+          <thead>
+            <tr>
+              <th>Image</th>
+              <th>Product</th>
+              <th>Size</th>
+              <th>Quantity</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% orderItems.forEach(item => { %>
+              <tr>
+                <td>
+                  <img src="<%= item.image %>" alt="<%= item.name %>" style="width: 80px;" />
+                </td>
+                <td><%= item.name %></td>
+                <td><%= item.size %></td>
+                <td><%= item.quantity %></td>
+                <td>£<%= (item.price * item.quantity).toFixed(2) %></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+
+        <!-- Shipping Info -->
+        <h3 class="mt-5">Shipping Address</h3>
+        <p><strong>Name:</strong> <%= shippingAddress.full_name %></p>
+        <p><strong>Street:</strong> <%= shippingAddress.street %></p>
+        <% if (shippingAddress.address_line2) { %>
+          <p><strong>Address Line 2:</strong> <%= shippingAddress.address_line2 %></p>
+        <% } %>
+        <p><strong>City:</strong> <%= shippingAddress.city %></p>
+        <p><strong>Postcode:</strong> <%= shippingAddress.postcode %></p>
+        <p><strong>Country:</strong> <%= shippingAddress.country %></p>
+        <p><strong>Email:</strong> <%= shippingAddress.email %></p>
+        <% if (shippingAddress.phone) { %>
+          <p><strong>Phone:</strong> <%= shippingAddress.phone %></p>
+        <% } %>
+
+        <!-- Continue Shopping -->
+        <a href="/" class="btn btn-primary mt-4">Continue Shopping</a>
+
+      <% } else { %>
+
+        <!-- If no order data -->
+        <p class="text-danger">❗ We couldn't find your order details. Please check your <a href="/account/orders">order history</a>.</p>
+        <a href="/" class="btn btn-primary mt-4">Back to Home</a>
+
+      <% } %>
+    </main>
+
+    <footer>
+      <p>&copy; 2025 The T Shirt Store</p>
+    </footer>
+  </body>
+</html>

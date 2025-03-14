@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title><%= product.name %> | The T Shirt Store</title>
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <style>
+      body {
+        background-color: #f8f9fa;
+      }
+
+      .product-image {
+        max-width: 100%;
+        height: auto;
+        border-radius: 10px;
+        margin-bottom: 20px;
+      }
+
+      .btn-buy {
+        background-color: #28a745;
+        color: white;
+      }
+
+      footer {
+        margin-top: 50px;
+        padding: 20px;
+        text-align: center;
+        background-color: #343a40;
+        color: #fff;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header class="navbar navbar-dark bg-dark p-3">
+      <div class="container">
+        <a class="navbar-brand" href="/">The T Shirt Store</a>
+        <nav>
+          <a class="text-white me-3" href="/cart">Cart</a>
+          <a class="text-white" href="/admin">Admin</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container my-5">
+      <div class="row">
+        <div class="col-md-6">
+          <img
+            src="<%= product.image %>"
+            alt="<%= product.name %>"
+            class="product-image"
+          />
+        </div>
+
+        <div class="col-md-6">
+          <h1><%= product.name %></h1>
+          <p><%= product.description %></p>
+          <p><strong>Color:</strong> <%= product.category %></p>
+          <p class="h4">£<%= product.price.toFixed(2) %></p>
+
+          <form action="/cart/add" method="POST">
+            <input type="hidden" name="productId" value="<%= product.id %>" />
+
+            <div class="mb-3">
+              <label for="sizeSelect" class="form-label">Select Size</label>
+              <select name="size" id="sizeSelect" class="form-select" required>
+                <% stock.forEach(item => { %> <% if (item.quantity > 0) { %>
+                <option value="<%= item.size %>">
+                  <%= item.size %> (In stock: <%= item.quantity %>)
+                </option>
+                <% } else { %>
+                <option value="<%= item.size %>" disabled>
+                  <%= item.size %> (Out of stock)
+                </option>
+                <% } %> <% }) %>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="quantity" class="form-label">Quantity</label>
+              <input
+                type="number"
+                name="quantity"
+                id="quantity"
+                class="form-control"
+                value="1"
+                min="1"
+                required
+              />
+            </div>
+
+            <button type="submit" class="btn btn-buy w-100">Add to Cart</button>
+          </form>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <p>&copy; 2025 The T Shirt Store</p>
+    </footer>
+  </body>
+</html>

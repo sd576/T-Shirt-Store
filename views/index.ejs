@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>The T Shirt Store - Home</title>
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <style>
+      body {
+        background-color: #f8f9fa;
+      }
+
+      .product-card {
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+        background-color: #fff;
+        transition: 0.3s;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .product-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .product-image {
+        max-width: 100%;
+        height: auto;
+        margin-bottom: 15px;
+      }
+
+      .btn-buy {
+        background-color: #28a745;
+        color: white;
+      }
+
+      footer {
+        margin-top: 50px;
+        padding: 20px;
+        text-align: center;
+        background-color: #343a40;
+        color: #fff;
+      }
+
+      #popup {
+        display: none;
+        z-index: 9999;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Navbar/Header -->
+    <header class="navbar navbar-dark bg-dark p-3">
+      <div class="container">
+        <a class="navbar-brand" href="/">The T Shirt Store</a>
+        <nav class="d-flex align-items-center">
+          <a class="text-white me-3" href="/">Home</a>
+
+          <a class="text-white position-relative me-3" href="/cart">
+            <!-- Cart Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
+              class="bi bi-cart" viewBox="0 0 16 16">
+              <path
+                d="M0 1.5A.5.5 0 0 1 .5 1h1a.5.5 0 0 1 .485.379L2.89 6H14.5a.5.5 0 0 1 .49.598l-1.5 7A.5.5 0 0 1 13 14H4a.5.5 0 0 1-.49-.402L1.01 2H.5a.5.5 0 0 1-.5-.5zM3.102 7l1.313 6h8.17l1.313-6H3.102z" />
+            </svg>
+
+            <% const cartCount = cart && cart.length ? cart.length : 0; %>
+            <% if (cartCount > 0) { %>
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                <%= cartCount %>
+              </span>
+            <% } %>
+          </a>
+
+          <a class="text-white" href="/admin">Admin</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="py-5 text-center bg-light">
+      <div class="container">
+        <h1 class="display-4 mb-3">Welcome to The T Shirt Store</h1>
+        <p class="lead mb-4">
+          Browse our exclusive range of soft, high-quality cotton T-shirts in a variety of colors and styles—
+          including our classic Union Jack design. Perfect for everyday wear, crafted for comfort, and designed to make you stand out.
+        </p>
+        <img
+          src="/images/all_Tshirts.jpg"
+          alt="All T Shirts Collection"
+          class="img-fluid rounded shadow"
+          style="max-height: 400px"
+        />
+      </div>
+    </section>
+
+    <!-- Main Products Section -->
+    <main class="container my-5">
+      <h2 class="mb-4">Available T-Shirts</h2>
+      <div class="row">
+        <% if (products.length === 0) { %>
+          <p>No products available.</p>
+        <% } else { %>
+          <% products.forEach(product => { %>
+            <div class="col-md-4 d-flex">
+              <div class="product-card">
+                <!-- Product Image -->
+                <img
+                  src="<%= product.image %>"
+                  alt="<%= product.name %>"
+                  class="product-image"
+                />
+
+                <!-- Product Name -->
+                <h3>
+                  <a href="/product/<%= product.id %>"><%= product.name %></a>
+                </h3>
+
+                <!-- Category (Color) -->
+                <p><strong>Color:</strong> <%= product.category %></p>
+
+                <!-- Price -->
+                <p class="h5">£<%= product.price.toFixed(2) %></p>
+
+                <!-- Add to Cart Form -->
+                <form
+                  action="/cart/add"
+                  method="POST"
+                  class="mt-auto"
+                  id="add-to-cart-<%= product.id %>"
+                >
+                  <input type="hidden" name="productId" value="<%= product.id %>" />
+
+                  <!-- Size Selector -->
+                  <div class="mb-3">
+                    <label for="size-<%= product.id %>" class="form-label">
+                      Select Size:
+                    </label>
+                    <select
+                      class="form-select"
+                      name="size"
+                      id="size-<%= product.id %>"
+                    >
+                      <option value="" disabled selected>Choose a size</option>
+                      <option value="XS">XS</option>
+                      <option value="S">S</option>
+                      <option value="M">M</option>
+                      <option value="L">L</option>
+                      <option value="XL">XL</option>
+                      <option value="XXL">XXL</option>
+                      <option value="XXXL">XXXL</option>
+                    </select>
+                  </div>
+
+                  <!-- Add to Cart Button -->
+                  <button type="submit" class="btn btn-buy w-100">
+                    Add to Cart
+                  </button>
+                </form>
+              </div>
+            </div>
+          <% }); %>
+        <% } %>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+      <p>&copy; 2025 The T Shirt Store</p>
+    </footer>
+
+    <!-- Custom Popup -->
+    <div
+      id="popup"
+      class="position-fixed top-50 start-50 translate-middle p-4 bg-danger text-white rounded shadow text-center fw-bold"
+      style="display: none;"
+    >
+      Please select a size before adding to cart!
+    </div>
+
+    <!-- JS for Popup and Validation -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll("[id^='add-to-cart-']").forEach((form) => {
+          form.addEventListener("submit", function (event) {
+            const productId = this.querySelector("[name='productId']").value;
+            const sizeSelect = document.getElementById(`size-${productId}`);
+            const selectedSize = sizeSelect.value;
+
+            if (!selectedSize) {
+              event.preventDefault();
+              showPopup("Please select a size before adding to cart!");
+            }
+          });
+        });
+      });
+
+      function showPopup(message) {
+        const popup = document.getElementById("popup");
+        popup.textContent = message;
+        popup.style.display = "block";
+
+        setTimeout(() => {
+          popup.style.display = "none";
+        }, 3000);
+      }
+    </script>
+  </body>
+</html>
