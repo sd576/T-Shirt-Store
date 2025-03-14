@@ -35,8 +35,13 @@ npm install
 
 After running `npm install`, you can use the following scripts in your terminal:
 
-### ✅ Quick Explanation
+### ✅ To Get Up and Running
+
+Run the following two commands (shown with what they do):
 
 - **`npm run db`** → Seeds the database.
-- **`npm run start`** → Starts the server
-- The site runs on **`http://localhost:3000/`**.
+- **`npm run start`** → Starts the server.
+
+Once the server is running, open your browser and go to:
+
+- **`http://localhost:3000/`** → This is the homepage of the T-Shirt Store website.
