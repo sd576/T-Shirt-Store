@@ -34,6 +34,7 @@
           <% } %>
 
           <form action="/checkout" method="POST">
+            <!-- Full Name -->
             <div class="mb-3">
               <label for="fullName" class="form-label">Full Name</label>
               <input
@@ -42,10 +43,11 @@
                 id="fullName"
                 class="form-control"
                 required
-                value="<%= user && user.name ? user.name : '' %>"
+                value="<%= user.name %>"
               />
             </div>
 
+            <!-- Email -->
             <div class="mb-3">
               <label for="email" class="form-label">Email Address</label>
               <input
@@ -54,10 +56,11 @@
                 id="email"
                 class="form-control"
                 required
-                value="<%= user && user.email ? user.email : '' %>"
+                value="<%= user.email %>"
               />
             </div>
 
+            <!-- Phone (optional) -->
             <div class="mb-3">
               <label for="phone" class="form-label">Phone Number (optional)</label>
               <input
@@ -65,9 +68,11 @@
                 name="phone"
                 id="phone"
                 class="form-control"
+                value="<%= user.phone %>"
               />
             </div>
 
+            <!-- Street Address -->
             <div class="mb-3">
               <label for="street" class="form-label">Street Address</label>
               <input
@@ -76,9 +81,11 @@
                 id="street"
                 class="form-control"
                 required
+                value="<%= user.street %>"
               />
             </div>
 
+            <!-- City -->
             <div class="mb-3">
               <label for="city" class="form-label">City</label>
               <input
@@ -87,9 +94,11 @@
                 id="city"
                 class="form-control"
                 required
+                value="<%= user.city %>"
               />
             </div>
 
+            <!-- Postcode -->
             <div class="mb-3">
               <label for="postcode" class="form-label">Postcode</label>
               <input
@@ -98,9 +107,11 @@
                 id="postcode"
                 class="form-control"
                 required
+                value="<%= user.postcode %>"
               />
             </div>
 
+            <!-- Country -->
             <div class="mb-3">
               <label for="country" class="form-label">Country</label>
               <input
@@ -109,6 +120,7 @@
                 id="country"
                 class="form-control"
                 required
+                value="<%= user.country %>"
               />
             </div>
 
@@ -125,6 +137,7 @@
               </label>
             </div>
 
+            <!-- Submit -->
             <button type="submit" class="btn btn-success w-100">Continue</button>
           </form>
         </div>

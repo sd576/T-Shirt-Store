@@ -21,8 +21,9 @@
           />
         </svg>
 
-        <% const cartCount = cart && cart.length ? cart.length : 0; %> <% if
-        (cartCount > 0) { %>
+        <!-- ✅ Calculate cartCount by summing quantities -->
+        <% let cartCount = 0; if (cart && cart.length) { cart.forEach(item => {
+        cartCount += item.quantity; }); } %> <% if (cartCount > 0) { %>
         <span
           class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
         >
