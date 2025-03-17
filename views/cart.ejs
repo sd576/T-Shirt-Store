@@ -18,7 +18,8 @@
       <h2 class="mb-4">Your Shopping Cart</h2>
 
       <% if (cart.length === 0) { %>
-      <p>Your cart is empty. <a href="/">Go shopping!</a></p>
+      <p>Your cart is empty.</p>
+      <a href="/" class="btn btn-outline-primary">← Continue Shopping</a>
       <% } else { %>
       <table class="table table-bordered align-middle">
         <thead class="table-light">
@@ -62,9 +63,14 @@
         </tbody>
       </table>
 
-      <div class="d-flex justify-content-between align-items-center">
-        <h4>Total: £<%= total.toFixed(2) %></h4>
-        <a href="/checkout" class="btn btn-success btn-lg">Checkout</a>
+      <div class="d-flex justify-content-between align-items-center mt-4">
+        <a href="/" class="btn btn-outline-primary">← Continue Shopping</a>
+        <div>
+          <h4 class="mb-3">Total: £<%= total.toFixed(2) %></h4>
+          <a href="/checkout" class="btn btn-success btn-lg"
+            >Proceed to Checkout</a
+          >
+        </div>
       </div>
       <% } %>
     </main>

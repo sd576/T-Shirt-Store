@@ -8,6 +8,11 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
+    <style>
+      body {
+        background-color: #f8f9fa;
+      }
+    </style>
   </head>
 
   <body>
@@ -19,16 +24,16 @@
       <h2 class="mb-4">Login to Your Account</h2>
 
       <% if (error) { %>
-      <div class="alert alert-danger"><%= error %></div>
+      <div class="alert alert-danger w-50 mx-auto"><%= error %></div>
       <% } %>
 
-      <form action="/login" method="POST" class="w-50 mx-auto">
+      <form action="/login" method="POST" class="w-50 mx-auto" id="loginForm">
         <div class="mb-3">
           <label for="email" class="form-label">Email address</label>
           <input
             type="email"
-            name="email"
             id="email"
+            name="email"
             class="form-control"
             placeholder="Enter your email"
             required
@@ -39,19 +44,32 @@
           <label for="password" class="form-label">Password</label>
           <input
             type="password"
-            name="password"
             id="password"
+            name="password"
             class="form-control"
             placeholder="Enter your password"
             required
           />
         </div>
 
-        <button type="submit" class="btn btn-primary w-100">Login</button>
+        <button type="submit" class="btn btn-success w-100 mb-2">Login</button>
+        <button
+          type="button"
+          class="btn btn-secondary w-100"
+          onclick="resetForm()"
+        >
+          Clear Form
+        </button>
       </form>
     </main>
 
     <!-- Shared Footer Include -->
     <%- include('partials/footer') %>
+
+    <script>
+      function resetForm() {
+        document.getElementById("loginForm").reset();
+      }
+    </script>
   </body>
 </html>
