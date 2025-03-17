@@ -4,18 +4,35 @@ A simple and responsive T-Shirt eCommerce website.
 
 ## 🚀 Features
 
-- Browse a collection of T-Shirts
-- Add items to the cart
-- Checkout process
-- Responsive design for mobile and desktop
-- [Any other features, like login/register, admin panel?]
+- 🛒 **Browse T-Shirts**  
+  View a collection of high-quality, stylish T-Shirts available in various colors and sizes.
+
+- ➕ **Add to Cart**  
+  Seamlessly add products to your cart with quantity and size selection.
+
+- 🧾 **Checkout Process**  
+  Simple checkout flow with cart summary and order completion.
+
+- 👤 **User Authentication**  
+  Secure user registration and login using JWT authentication.
+
+- 🔐 **My Account Dashboard**  
+  View your orders and account information after logging in.
+
+- 🚪 **Logout Functionality**  
+  End your session securely with the logout feature.
+
+- 📱 **Responsive Design**  
+  Fully responsive and mobile-friendly design for desktop, tablet, and mobile users.
+
 
 ## 🛠️ Built With
 
-- Frontend: [React / Next.js / HTML, CSS, JS?]
-- Backend (optional): [Node.js / Express / SQLite?]
-- Database (optional): [SQLite / MongoDB?]
-- Styling: [Tailwind / Bootstrap / CSS Modules?]
+- Frontend: HTML5, CSS3, JavaScript (ES6), EJS Templating Engine, Bootstrap 5
+- Backend: Node.js, Express.js, RESTful API architecture
+- Database: SQLite (using sqlite3 / better-sqlite3)
+- Styling: Bootstrap 5, Custom CSS
+- Session & Auth: express-session, JWT for authentication
 
 ## 📦 Installation
 
