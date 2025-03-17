@@ -44,7 +44,7 @@ router.post("/add-product", async (req, res) => {
         "Misc",
         parseFloat(price),
         "/images/default.jpg",
-      ]
+      ],
     );
 
     console.log(`✅ New product added: ${name}`);

@@ -1,13 +1,16 @@
 import dbPromise from "../database/db.js";
 
-// View Cart
+// ✅ View Cart
 export const viewCart = (req, res) => {
   const cart = req.session.cart || [];
-  res.render("cart", { cart });
+  
+  res.render("cart", { 
+    cart, 
+    session: req.session  // Pass session to the template
+  });
 };
 
-// Add to Cart
-// Add to Cart
+// ✅ Add to Cart
 export const addToCart = async (req, res) => {
   const productId = parseInt(req.body.productId, 10);
   const selectedSize = req.body.size;
@@ -25,7 +28,7 @@ export const addToCart = async (req, res) => {
     // ✅ Get product from DB
     const product = await db.get(
       "SELECT * FROM products WHERE id = ?",
-      productId
+      productId,
     );
 
     if (!product) {
@@ -49,7 +52,7 @@ export const addToCart = async (req, res) => {
     });
 
     console.log(
-      `✅ Added product "${product.name}" (size ${selectedSize}, qty ${quantity}) to cart`
+      `✅ Added product "${product.name}" (size ${selectedSize}, qty ${quantity}) to cart`,
     );
 
     res.redirect("/cart");
@@ -59,9 +62,7 @@ export const addToCart = async (req, res) => {
   }
 };
 
-
-
-// Remove from Cart
+// ✅ Remove from Cart
 export const removeFromCart = (req, res) => {
   const productId = parseInt(req.body.productId);
 
@@ -70,7 +71,7 @@ export const removeFromCart = (req, res) => {
   }
 
   req.session.cart = req.session.cart.filter(
-    (item) => item.productId !== productId
+    (item) => item.productId !== productId,
   );
 
   res.redirect("/cart");

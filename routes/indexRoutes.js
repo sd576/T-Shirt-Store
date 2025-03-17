@@ -13,7 +13,8 @@ router.get("/", async (req, res) => {
 
     res.render("index", {
       products,
-      cart
+      cart,
+      session: req.session
     });
   } catch (err) {
     console.error("Error fetching products:", err);
@@ -51,7 +52,8 @@ router.get("/product/:id", async (req, res) => {
     res.render("tShirt", {
       product,
       stock,
-      cart
+      cart,
+      session: req.session
     });
   } catch (err) {
     console.error("Error fetching product:", err);

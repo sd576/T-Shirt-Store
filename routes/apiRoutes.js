@@ -37,7 +37,7 @@ router.get("/products/:id/stock", async (req, res) => {
 
     const product = await db.get(
       "SELECT id, name FROM products WHERE id = ?",
-      productId
+      productId,
     );
 
     if (!product) {
@@ -46,7 +46,7 @@ router.get("/products/:id/stock", async (req, res) => {
 
     const stock = await db.all(
       "SELECT size, quantity FROM product_stock WHERE product_id = ?",
-      productId
+      productId,
     );
 
     res.json({
@@ -57,7 +57,7 @@ router.get("/products/:id/stock", async (req, res) => {
   } catch (error) {
     console.error(
       `❌ Error fetching stock for product ID ${productId}:`,
-      error
+      error,
     );
     res.status(500).json({ error: "Internal Server Error" });
   }

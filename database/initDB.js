@@ -121,7 +121,7 @@ async function init() {
     const result = await db.run(
       `INSERT INTO products (name, description, category, type, price, image)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [name, description, category, type, price, image]
+      [name, description, category, type, price, image],
     );
 
     const productId = result.lastID;
@@ -132,7 +132,7 @@ async function init() {
       await db.run(
         `INSERT INTO product_stock (product_id, size, quantity)
          VALUES (?, ?, ?)`,
-        [productId, size, quantity]
+        [productId, size, quantity],
       );
     }
   }
@@ -143,7 +143,7 @@ async function init() {
     await db.run(
       `INSERT INTO users (id, name, email, password)
        VALUES (?, ?, ?, ?)`,
-      [user.id, user.name, user.email, user.password]
+      [user.id, user.name, user.email, user.password],
     );
   }
 
@@ -158,8 +158,8 @@ async function init() {
         order.total_amount,
         order.status,
         order.order_number,
-        order.order_date
-      ]
+        order.order_date,
+      ],
     );
   }
 
@@ -169,7 +169,7 @@ async function init() {
     await db.run(
       `INSERT INTO order_items (order_id, product_id, size, quantity, price)
        VALUES (?, ?, ?, ?, ?)`,
-      [item.order_id, item.product_id, item.size, item.quantity, item.price]
+      [item.order_id, item.product_id, item.size, item.quantity, item.price],
     );
   }
 
@@ -190,7 +190,7 @@ async function init() {
         address.country,
         address.phone || "",
         address.email || "",
-      ]
+      ],
     );
   }
 

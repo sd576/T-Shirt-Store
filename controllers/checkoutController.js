@@ -48,7 +48,7 @@ export const processCheckout = async (req, res) => {
     // Calculate total order amount
     const totalAmount = cart.reduce(
       (sum, item) => sum + item.price * item.quantity,
-      0
+      0,
     );
 
     const userId = 1; // For now, static user; replace with logged-in user later!
@@ -58,7 +58,7 @@ export const processCheckout = async (req, res) => {
     const orderResult = await db.run(
       `INSERT INTO orders (user_id, order_date, total_amount, status, order_number)
        VALUES (?, datetime('now'), ?, ?, ?)`,
-      [userId, totalAmount, "processing", orderNumber]
+      [userId, totalAmount, "processing", orderNumber],
     );
 
     const orderId = orderResult.lastID;
@@ -79,7 +79,7 @@ export const processCheckout = async (req, res) => {
         country,
         phone || "",
         email || "",
-      ]
+      ],
     );
 
     console.log(`✅ Shipping address saved for order #${orderId}`);
@@ -92,7 +92,7 @@ export const processCheckout = async (req, res) => {
       await db.run(
         `INSERT INTO order_items (order_id, product_id, size, quantity, price)
          VALUES (?, ?, ?, ?, ?)`,
-        [orderId, productId, size, quantity, price]
+        [orderId, productId, size, quantity, price],
       );
 
       // Update stock
@@ -100,7 +100,7 @@ export const processCheckout = async (req, res) => {
         `UPDATE product_stock
          SET quantity = quantity - ?
          WHERE product_id = ? AND size = ?`,
-        [quantity, productId, size]
+        [quantity, productId, size],
       );
     }
 
@@ -143,7 +143,7 @@ export const showCheckoutSuccess = async (req, res) => {
     // Get shipping address
     const shippingAddress = await db.get(
       `SELECT * FROM shipping_addresses WHERE order_id = ?`,
-      [orderId]
+      [orderId],
     );
 
     // Get order items (join products for image + name)
@@ -152,7 +152,7 @@ export const showCheckoutSuccess = async (req, res) => {
        FROM order_items oi
        JOIN products p ON oi.product_id = p.id
        WHERE oi.order_id = ?`,
-      [orderId]
+      [orderId],
     );
 
     console.log(`✅ Fetched order summary for order #${orderId}`);

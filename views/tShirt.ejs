@@ -37,15 +37,8 @@
   </head>
 
   <body>
-    <header class="navbar navbar-dark bg-dark p-3">
-      <div class="container">
-        <a class="navbar-brand" href="/">The T Shirt Store</a>
-        <nav>
-          <a class="text-white me-3" href="/cart">Cart</a>
-          <a class="text-white" href="/admin">Admin</a>
-        </nav>
-      </div>
-    </header>
+    <!-- Shared Header Include -->
+    <%- include('partials/header', { cart: cart }) %>
 
     <main class="container my-5">
       <div class="row">
@@ -100,8 +93,7 @@
       </div>
     </main>
 
-    <footer>
-      <p>&copy; 2025 The T Shirt Store</p>
-    </footer>
+    <!-- Shared Footer Include -->
+    <%- include('partials/footer') %>
   </body>
 </html>

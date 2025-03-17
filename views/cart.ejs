@@ -10,42 +10,8 @@
   </head>
 
   <body>
-    <!-- Navbar -->
-    <header class="navbar navbar-dark bg-dark p-3">
-      <div class="container">
-        <a class="navbar-brand" href="/">The T Shirt Store</a>
-        <nav class="d-flex align-items-center">
-          <a class="text-white me-3" href="/">Home</a>
-
-          <!-- Cart Icon -->
-          <a class="text-white position-relative me-3" href="/cart">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              fill="currentColor"
-              class="bi bi-cart"
-              viewBox="0 0 16 16"
-            >
-              <path
-                d="M0 1.5A.5.5 0 0 1 .5 1h1a.5.5 0 0 1 .485.379L2.89 6H14.5a.5.5 0 0 1 .49.598l-1.5 7A.5.5 0 0 1 13 14H4a.5.5 0 0 1-.49-.402L1.01 2H.5a.5.5 0 0 1-.5-.5zM3.102 7l1.313 6h8.17l1.313-6H3.102z"
-              />
-            </svg>
-
-            <% const cartCount = cart && cart.length ? cart.length : 0; %> <% if
-            (cartCount > 0) { %>
-            <span
-              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-            >
-              <%= cartCount %>
-            </span>
-            <% } %>
-          </a>
-
-          <a class="text-white" href="/admin">Admin</a>
-        </nav>
-      </div>
-    </header>
+    <!-- Shared Header Include -->
+    <%- include('partials/header', { cart: cart, session: session }) %>
 
     <!-- Cart Page Content -->
     <main class="container my-5">
@@ -103,8 +69,7 @@
       <% } %>
     </main>
 
-    <footer class="mt-5 text-center">
-      <p>&copy; 2025 The T Shirt Store</p>
-    </footer>
+    <!-- Shared Footer Include -->
+    <%- include('partials/footer') %>
   </body>
 </html>

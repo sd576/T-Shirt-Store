@@ -5,22 +5,23 @@ import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 
+// Load environment variables
 dotenv.config();
 
 // Routes
-import indexRoutes from "./routes/index.js";
-import cartRoutes from "./routes/cart.js";
-import adminRoutes from "./routes/admin.js";
-import apiRoutes from "./routes/api.js";
-import checkoutRoutes from "./routes/checkout.js";
+import indexRoutes from "./routes/indexRoutes.js";
+import cartRoutes from "./routes/cartRoutes.js";
+import apiRoutes from "./routes/apiRoutes.js";
+import checkoutRoutes from "./routes/checkoutRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import authPageRoutes from "./routes/authPageRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 
 // Get __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const app = express();
+const app = express(); // ✅ Needs to come before you use app!
 
 // Middlewares
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -34,14 +35,14 @@ app.use(express.static(path.join(__dirname, "public")));
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
-// Routes registration order
-app.use("/api/auth", authRoutes); // API auth routes (register/login/logout)
-app.use("/api/orders", orderRoutes); // API orders route (protected)
-app.use("/", indexRoutes); // Home page & other public routes
-app.use("/cart", cartRoutes); // Cart pages (likely EJS)
-app.use("/checkout", checkoutRoutes); // Checkout pages (likely EJS)
-app.use("/admin", adminRoutes); // Admin pages
-app.use("/api", apiRoutes); // Other API routes (legacy/custom)
+// Routes registration order (single block)
+app.use("/api/auth", authRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/cart", cartRoutes);
+app.use("/checkout", checkoutRoutes);
+app.use("/", authPageRoutes);
+app.use("/", indexRoutes);
+app.use("/api", apiRoutes);
 
 // 404 handler (for all unmatched routes)
 app.use((req, res) => {
