@@ -13,21 +13,29 @@ export const showCheckoutPage = (req, res) => {
     return res.redirect("/cart");
   }
 
+  // ✅ Always send user (null if not logged in)
   let user = null;
+
   if (req.session.token) {
-    user = jwt.decode(req.session.token);
+    try {
+      user = jwt.decode(req.session.token);
+    } catch (err) {
+      console.warn("⚠️ Failed to decode JWT:", err.message);
+      user = null;
+    }
   }
 
+  // ✅ Pass user into the view
   res.render("checkout", {
     cart,
-    user,
+    user, // << YOU MUST PASS THIS
     session: req.session,
   });
 };
 
 /**
  * POST /checkout
- * Process checkout: create order, save shipping, order items, update stock, clear cart.
+ * Process checkout: guest or user checkout → create order, save shipping, order items, update stock, clear cart.
  */
 export const processCheckout = async (req, res) => {
   const cart = req.session.cart || [];
@@ -37,7 +45,16 @@ export const processCheckout = async (req, res) => {
     return res.status(400).send("Cart is empty.");
   }
 
-  let { fullName, email, phone, street, city, postcode, country } = req.body;
+  let {
+    fullName,
+    email,
+    phone,
+    street,
+    city,
+    postcode,
+    country,
+    checkoutAsGuest,
+  } = req.body;
 
   if (!fullName || !email || !street || !city || !postcode || !country) {
     console.warn("❗ Missing shipping fields in checkout form.");
@@ -58,7 +75,6 @@ export const processCheckout = async (req, res) => {
     for (const item of cart) {
       const { productId, size, quantity } = item;
 
-      // Check current stock for this product/size
       const stock = await db.get(
         `SELECT quantity FROM product_stock WHERE product_id = ? AND size = ?`,
         [productId, size]
@@ -84,25 +100,30 @@ export const processCheckout = async (req, res) => {
       }
     }
 
-    // ✅ If we got here, stock is OK — continue processing the order
+    // ✅ If stock is OK → Process the order
     const totalAmount = cart.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0
     );
 
-    // ✅ Get userId from decoded token
-    const token = req.session.token;
-    const decodedUser = jwt.decode(token);
+    const guestCheckout = checkoutAsGuest === "on" || !req.session.token;
 
-    if (!decodedUser || !decodedUser.id) {
-      console.warn("❗ No valid user found in session token.");
-      return res.redirect("/login");
+    let userId = null;
+    if (!guestCheckout) {
+      const token = req.session.token;
+      const decodedUser = jwt.decode(token);
+
+      if (!decodedUser || !decodedUser.id) {
+        console.warn("❗ No valid user found in session token.");
+        return res.redirect("/login");
+      }
+
+      userId = decodedUser.id;
     }
 
-    const userId = decodedUser.id;
     const orderNumber = generateOrderNumber();
 
-    // ✅ Insert the order
+    // ✅ Insert order (user_id is NULL if guest)
     const orderResult = await db.run(
       `INSERT INTO orders (user_id, order_date, total_amount, status, order_number)
        VALUES (?, datetime('now'), ?, ?, ?)`,
@@ -121,7 +142,7 @@ export const processCheckout = async (req, res) => {
         orderId,
         fullName,
         street,
-        "", // address_line2 (optional)
+        "", // address_line2 optional
         city,
         postcode,
         country,
@@ -155,7 +176,12 @@ export const processCheckout = async (req, res) => {
     // ✅ Clear cart after successful order
     req.session.cart = [];
 
-    res.redirect(`/checkout/success?orderId=${orderId}`);
+    // ✅ Pass guestCheckout flag to success page
+    res.redirect(
+      `/checkout/success?orderId=${orderId}&guestCheckout=${
+        guestCheckout ? "1" : "0"
+      }`
+    );
   } catch (err) {
     console.error("❌ Error during checkout process:", err);
     res.status(500).send("Something went wrong during checkout.");
@@ -168,6 +194,7 @@ export const processCheckout = async (req, res) => {
  */
 export const showCheckoutSuccess = async (req, res) => {
   const orderId = req.query.orderId;
+  const guestCheckout = req.query.guestCheckout === "1";
 
   if (!orderId) {
     console.warn("⚠️ No orderId in checkout success query.");
@@ -203,6 +230,7 @@ export const showCheckoutSuccess = async (req, res) => {
       order,
       shippingAddress,
       orderItems,
+      guestCheckout,
     });
   } catch (err) {
     console.error("❌ Error fetching checkout success data:", err);

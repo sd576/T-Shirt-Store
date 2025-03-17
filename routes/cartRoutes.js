@@ -18,6 +18,6 @@ router.post("/add", addToCart);
 router.post("/remove", removeFromCart);
 
 // POST /cart/update → Update quantities
-router.post("/update", updateCart); // 👈 New!
+router.post("/update", updateCart);
 
 export default router;

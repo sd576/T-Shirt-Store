@@ -17,7 +17,7 @@
 
   <body>
     <!-- Shared Header Include -->
-    <%- include('partials/header', { cart: cart, session: session }) %>
+    <%- include('partials/header') %>
 
     <!-- Register Form Content -->
     <main class="container my-5">
@@ -31,7 +31,12 @@
       <div class="alert alert-danger w-50 mx-auto"><%= error %></div>
       <% } %>
 
-      <form id="registerForm" action="/register" method="POST" class="w-50 mx-auto">
+      <form
+        id="registerForm"
+        action="/register"
+        method="POST"
+        class="w-50 mx-auto"
+      >
         <div class="mb-3">
           <label for="name" class="form-label">Name</label>
           <input
@@ -68,8 +73,16 @@
           />
         </div>
 
-        <button type="submit" class="btn btn-success w-100 mb-2">Register</button>
-        <button type="button" class="btn btn-secondary w-100" onclick="resetForm()">Clear Form</button>
+        <button type="submit" class="btn btn-success w-100 mb-2">
+          Register
+        </button>
+        <button
+          type="button"
+          class="btn btn-secondary w-100"
+          onclick="resetForm()"
+        >
+          Clear Form
+        </button>
       </form>
     </main>
 

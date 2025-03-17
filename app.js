@@ -8,49 +8,74 @@ import dotenv from "dotenv";
 // Load environment variables
 dotenv.config();
 
-// Routes
+// ===== ROUTE IMPORTS =====
+// Web routes
 import indexRoutes from "./routes/indexRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
-import apiRoutes from "./routes/apiRoutes.js";
 import checkoutRoutes from "./routes/checkoutRoutes.js";
-import authRoutes from "./routes/authRoutes.js";
 import authPageRoutes from "./routes/authPageRoutes.js";
-import orderRoutes from "./routes/orderRoutes.js";
 
-// Get __dirname in ES modules
+// API routes
+import apiAuthRoutes from "./routes/apiAuthRoutes.js"; // NEW: API Auth Routes (JWT)
+import orderRoutes from "./routes/orderRoutes.js"; // API Order Routes
+import apiRoutes from "./routes/apiRoutes.js"; // Other APIs
+
+// ===== SETUP __dirname =====
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const app = express(); // ✅ Needs to come before you use app!
+// ===== CREATE EXPRESS APP =====
+const app = express();
 
-// Middlewares
+// ===== MIDDLEWARES =====
+
+// Body parser middleware (handles form and JSON payloads)
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+
+// Session setup (must come before routes so session is available in them)
 app.use(
-  session({ secret: "secret-key", resave: false, saveUninitialized: true })
+  session({
+    secret: "secret-key", // Replace with process.env.SESSION_SECRET in production
+    resave: false,
+    saveUninitialized: true,
+  })
 );
+
+// ✅ res.locals.user middleware (after session, before routes)
+app.use((req, res, next) => {
+  console.log("✅ res.locals.user:", req.session.userInfo); // Add this temporarily to debug
+  res.locals.user = req.session.userInfo || null;
+  next();
+});
+
+// Static files (CSS, JS, Images)
 app.use(express.static(path.join(__dirname, "public")));
 
-// EJS setup
+// EJS view engine setup
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
-// Routes registration order (single block)
-app.use("/api/auth", authRoutes);
-app.use("/api/orders", orderRoutes);
-app.use("/cart", cartRoutes);
-app.use("/checkout", checkoutRoutes);
-app.use("/", authPageRoutes);
-app.use("/", indexRoutes);
-app.use("/api", apiRoutes);
+// ===== ROUTES REGISTRATION =====
 
-// 404 handler (for all unmatched routes)
+// ✅ API Routes (JSON + JWT) - APIs should come before Web routes
+app.use("/api/auth", apiAuthRoutes); // API Login/Logout (JWT)
+app.use("/api/orders", orderRoutes); // API Order routes (can be JWT protected later)
+app.use("/api", apiRoutes); // Other APIs
+
+// ✅ Web App Routes (EJS + sessions)
+app.use("/cart", cartRoutes); // Cart pages (add/view cart)
+app.use("/checkout", checkoutRoutes); // Checkout pages
+app.use("/", authPageRoutes); // Login/Register/My Account (Web pages)
+app.use("/", indexRoutes); // Home, product pages, etc.
+
+// ===== 404 HANDLER =====
 app.use((req, res) => {
   console.log(`404 hit: ${req.originalUrl}`);
   res.status(404).render("404");
 });
 
-// Start Server
+// ===== START SERVER =====
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Server is running at: http://localhost:${PORT}/`);

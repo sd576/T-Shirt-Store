@@ -28,6 +28,11 @@
         <!-- Shipping Address Form -->
         <div class="col-md-6">
           <h3>Shipping Details</h3>
+
+          <% if (typeof error !== 'undefined' && error) { %>
+            <div class="alert alert-danger"><%= error %></div>
+          <% } %>
+
           <form action="/checkout" method="POST">
             <div class="mb-3">
               <label for="fullName" class="form-label">Full Name</label>
@@ -107,24 +112,36 @@
               />
             </div>
 
-            <button type="submit" class="btn btn-success">Place Order</button>
+            <!-- Guest Checkout Checkbox -->
+            <div class="form-check mb-3">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                name="checkoutAsGuest"
+                id="checkoutAsGuest"
+              />
+              <label class="form-check-label" for="checkoutAsGuest">
+                Checkout as Guest
+              </label>
+            </div>
+
+            <button type="submit" class="btn btn-success w-100">Continue</button>
           </form>
         </div>
 
         <!-- Order Summary -->
         <div class="col-md-6">
           <h3>Order Summary</h3>
+
           <% if (cart.length === 0) { %>
-            <p>Your cart is empty.</p>
+            <div class="alert alert-info">Your cart is empty.</div>
           <% } else { %>
             <ul class="list-group mb-3">
               <% let total = 0; %>
               <% cart.forEach(item => { %>
                 <li class="list-group-item d-flex justify-content-between lh-sm">
                   <div>
-                    <h6 class="my-0">
-                      <%= item.name %> (Size: <%= item.size %>)
-                    </h6>
+                    <h6 class="my-0"><%= item.name %> (Size: <%= item.size %>)</h6>
                     <small class="text-muted">Qty: <%= item.quantity %></small>
                   </div>
                   <span class="text-muted">
@@ -158,27 +175,21 @@
       }
 
       document.addEventListener("DOMContentLoaded", () => {
-        const fullNameField = document.getElementById("fullName");
-        const streetField = document.getElementById("street");
-        const cityField = document.getElementById("city");
-        const countryField = document.getElementById("country");
-        const postcodeField = document.getElementById("postcode");
-
-        const titleCaseFields = [
-          fullNameField,
-          streetField,
-          cityField,
-          countryField,
+        const fieldsToTitleCase = [
+          "fullName",
+          "street",
+          "city",
+          "country",
         ];
 
-        // Title case on blur
-        titleCaseFields.forEach((field) => {
+        fieldsToTitleCase.forEach((fieldId) => {
+          const field = document.getElementById(fieldId);
           field.addEventListener("blur", () => {
             field.value = toTitleCase(field.value.trim());
           });
         });
 
-        // Uppercase for postcode
+        const postcodeField = document.getElementById("postcode");
         postcodeField.addEventListener("blur", () => {
           postcodeField.value = postcodeField.value.trim().toUpperCase();
         });

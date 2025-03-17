@@ -39,7 +39,9 @@
         <a class="navbar-brand" href="/">The T Shirt Store</a>
         <nav>
           <a class="text-white me-3" href="/cart">Cart</a>
-          <a class="text-white" href="/account/orders">My Orders</a>
+          <% if (!guestCheckout) { %>
+            <a class="text-white" href="/account/orders">My Orders</a>
+          <% } %>
         </nav>
       </div>
     </header>
@@ -50,7 +52,13 @@
 
       <% if (order && shippingAddress && orderItems.length > 0) { %>
 
-        <p class="lead mb-3">Your awesome T-Shirts will be on their way soon!</p>
+        <p class="lead mb-3">
+          <% if (guestCheckout) { %>
+            You're all set! We’ll email your order confirmation shortly.
+          <% } else { %>
+            Your awesome T-Shirts will be on their way soon!
+          <% } %>
+        </p>
 
         <!-- Order Info -->
         <p class="order-id">
@@ -108,7 +116,14 @@
       <% } else { %>
 
         <!-- If no order data -->
-        <p class="text-danger">❗ We couldn't find your order details. Please check your <a href="/account/orders">order history</a>.</p>
+        <p class="text-danger">
+          ❗ We couldn't find your order details.
+          <% if (!guestCheckout) { %>
+            Please check your <a href="/account/orders">order history</a>.
+          <% } else { %>
+            Contact our support team if you have questions.
+          <% } %>
+        </p>
         <a href="/" class="btn btn-primary mt-4">Back to Home</a>
 
       <% } %>

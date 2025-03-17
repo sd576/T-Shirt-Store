@@ -43,6 +43,10 @@ router.post("/register", async (req, res) => {
     // Save token in session after successful registration
     req.session.token = data.token;
 
+    // ✅ Set session.userInfo as well!
+    const decodedUser = jwt.decode(data.token);
+    req.session.userInfo = decodedUser;
+
     res.redirect("/my-account");
   } catch (error) {
     console.error("Error during registration:", error);
@@ -89,6 +93,9 @@ router.post("/login", async (req, res) => {
     // Save token in session after successful login
     req.session.token = data.token;
 
+    // ✅ Set session.userInfo here!
+    req.session.userInfo = data.user; // Coming back from /api/auth/login
+
     res.redirect("/my-account");
   } catch (error) {
     console.error("Error during login:", error);
@@ -115,6 +122,7 @@ router.get("/logout", (req, res) => {
 
 router.get("/my-account", async (req, res) => {
   console.log("Session token at /my-account:", req.session.token);
+
   if (!req.session.token) {
     return res.redirect("/login");
   }
@@ -130,6 +138,9 @@ router.get("/my-account", async (req, res) => {
       "SELECT * FROM orders WHERE user_id = ?",
       userId
     );
+
+    // ✅ Set session.userInfo so it syncs across pages
+    req.session.userInfo = decodedUser;
 
     res.render("my-account", {
       user: decodedUser,
