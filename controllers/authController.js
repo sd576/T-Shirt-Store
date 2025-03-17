@@ -22,12 +22,22 @@ export const registerUser = async (req, res) => {
 
     const result = await db.run(
       "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
-      [name, email, hashedPassword],
+      [name, email, hashedPassword]
+    );
+
+    const token = jwt.sign(
+      {
+        id: result.lastID,
+        email: email,
+        name: name,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || "1h" }
     );
 
     res.status(201).json({
       message: "User registered successfully",
-      userId: result.lastID,
+      token: token, 
     });
   } catch (error) {
     console.error(error);
@@ -54,7 +64,7 @@ export const loginUser = async (req, res) => {
     const token = jwt.sign(
       { id: user.id, email: user.email },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "1h" },
+      { expiresIn: process.env.JWT_EXPIRES_IN || "1h" }
     );
 
     res.status(200).json({

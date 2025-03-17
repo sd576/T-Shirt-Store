@@ -1,4 +1,5 @@
 import dbPromise from "../database/db.js";
+import jwt from "jsonwebtoken";
 
 /**
  * GET /checkout
@@ -12,7 +13,16 @@ export const showCheckoutPage = (req, res) => {
     return res.redirect("/cart");
   }
 
-  res.render("checkout", { cart });
+  let user = null;
+  if (req.session.token) {
+    user = jwt.decode(req.session.token);
+  }
+
+  res.render("checkout", {
+    cart,
+    user,
+    session: req.session,
+  });
 };
 
 /**
@@ -27,7 +37,6 @@ export const processCheckout = async (req, res) => {
     return res.status(400).send("Cart is empty.");
   }
 
-  // Destructure and clean up incoming data
   let { fullName, email, phone, street, city, postcode, country } = req.body;
 
   if (!fullName || !email || !street || !city || !postcode || !country) {
@@ -45,26 +54,34 @@ export const processCheckout = async (req, res) => {
   try {
     const db = await dbPromise;
 
-    // Calculate total order amount
     const totalAmount = cart.reduce(
       (sum, item) => sum + item.price * item.quantity,
-      0,
+      0
     );
 
-    const userId = 1; // For now, static user; replace with logged-in user later!
+    // ✅ Get userId from decoded token
+    const token = req.session.token;
+    const decodedUser = jwt.decode(token);
+
+    if (!decodedUser || !decodedUser.id) {
+      console.warn("❗ No valid user found in session token.");
+      return res.redirect("/login");
+    }
+
+    const userId = decodedUser.id;
     const orderNumber = generateOrderNumber();
 
-    // Insert the order into the orders table
+    // Insert the order
     const orderResult = await db.run(
       `INSERT INTO orders (user_id, order_date, total_amount, status, order_number)
        VALUES (?, datetime('now'), ?, ?, ?)`,
-      [userId, totalAmount, "processing", orderNumber],
+      [userId, totalAmount, "processing", orderNumber]
     );
 
     const orderId = orderResult.lastID;
     console.log(`✅ Order #${orderId} created`);
 
-    // Insert the shipping address
+    // Insert shipping address
     await db.run(
       `INSERT INTO shipping_addresses
        (order_id, full_name, street, address_line2, city, postcode, country, phone, email)
@@ -79,37 +96,34 @@ export const processCheckout = async (req, res) => {
         country,
         phone || "",
         email || "",
-      ],
+      ]
     );
 
     console.log(`✅ Shipping address saved for order #${orderId}`);
 
-    // Insert the order items and update stock
+    // Insert order items + update stock
     for (const item of cart) {
       const { productId, size, quantity, price } = item;
 
-      // Insert order item
       await db.run(
         `INSERT INTO order_items (order_id, product_id, size, quantity, price)
          VALUES (?, ?, ?, ?, ?)`,
-        [orderId, productId, size, quantity, price],
+        [orderId, productId, size, quantity, price]
       );
 
-      // Update stock
       await db.run(
         `UPDATE product_stock
          SET quantity = quantity - ?
          WHERE product_id = ? AND size = ?`,
-        [quantity, productId, size],
+        [quantity, productId, size]
       );
     }
 
     console.log(`✅ Order items added & stock updated for order #${orderId}`);
 
-    // Clear the cart
+    // ✅ Clear cart after successful order
     req.session.cart = [];
 
-    // Redirect to the success page
     res.redirect(`/checkout/success?orderId=${orderId}`);
   } catch (err) {
     console.error("❌ Error during checkout process:", err);
@@ -132,7 +146,6 @@ export const showCheckoutSuccess = async (req, res) => {
   try {
     const db = await dbPromise;
 
-    // Get order details
     const order = await db.get(`SELECT * FROM orders WHERE id = ?`, [orderId]);
 
     if (!order) {
@@ -140,19 +153,17 @@ export const showCheckoutSuccess = async (req, res) => {
       return res.redirect("/");
     }
 
-    // Get shipping address
     const shippingAddress = await db.get(
       `SELECT * FROM shipping_addresses WHERE order_id = ?`,
-      [orderId],
+      [orderId]
     );
 
-    // Get order items (join products for image + name)
     const orderItems = await db.all(
       `SELECT oi.*, p.name AS productName, p.image
        FROM order_items oi
        JOIN products p ON oi.product_id = p.id
        WHERE oi.order_id = ?`,
-      [orderId],
+      [orderId]
     );
 
     console.log(`✅ Fetched order summary for order #${orderId}`);
@@ -171,14 +182,11 @@ export const showCheckoutSuccess = async (req, res) => {
 /**
  * Helpers
  */
-
-// Generate a random 6-digit order number
 function generateOrderNumber() {
   const randomNum = Math.floor(100000 + Math.random() * 900000);
   return randomNum.toString();
 }
 
-// Convert a string to Title Case
 function toTitleCase(str) {
   return str
     .toLowerCase()

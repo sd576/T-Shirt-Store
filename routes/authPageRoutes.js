@@ -2,6 +2,8 @@ import express from "express";
 import fetch from "node-fetch";
 import jwt from "jsonwebtoken";
 
+import dbPromise from "../database/db.js";
+
 const router = express.Router();
 
 const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:3000";
@@ -111,21 +113,32 @@ router.get("/logout", (req, res) => {
 
 // ==================== MY ACCOUNT ==================== //
 
-router.get("/my-account", (req, res) => {
+router.get("/my-account", async (req, res) => {
+  console.log("Session token at /my-account:", req.session.token);
   if (!req.session.token) {
     return res.redirect("/login");
   }
 
   try {
     const decodedUser = jwt.decode(req.session.token);
+    const userId = decodedUser.id;
+
+    const db = await dbPromise;
+
+    // ✅ Get this user's orders
+    const orders = await db.all(
+      "SELECT * FROM orders WHERE user_id = ?",
+      userId
+    );
 
     res.render("my-account", {
       user: decodedUser,
+      orders, // ✅ Pass orders here
       cart: req.session.cart || [],
       session: req.session,
     });
   } catch (error) {
-    console.error("Error decoding token:", error);
+    console.error("Error fetching my account info:", error);
     res.redirect("/login");
   }
 });

@@ -22,12 +22,16 @@
     <!-- Register Form Content -->
     <main class="container my-5">
       <h2 class="mb-4">Create a New Account</h2>
+      <div class="alert alert-info w-50 mx-auto">
+        <strong>Important:</strong> Please make a note of your email and
+        password. You’ll need them to log in again!
+      </div>
 
       <% if (error) { %>
-      <div class="alert alert-danger"><%= error %></div>
+      <div class="alert alert-danger w-50 mx-auto"><%= error %></div>
       <% } %>
 
-      <form action="/register" method="POST" class="w-50 mx-auto">
+      <form id="registerForm" action="/register" method="POST" class="w-50 mx-auto">
         <div class="mb-3">
           <label for="name" class="form-label">Name</label>
           <input
@@ -64,11 +68,36 @@
           />
         </div>
 
-        <button type="submit" class="btn btn-success w-100">Register</button>
+        <button type="submit" class="btn btn-success w-100 mb-2">Register</button>
+        <button type="button" class="btn btn-secondary w-100" onclick="resetForm()">Clear Form</button>
       </form>
     </main>
 
     <!-- Shared Footer Include -->
     <%- include('partials/footer') %>
+
+    <script>
+      // Convert name input to Title Case on blur
+      function toTitleCase(str) {
+        return str
+          .toLowerCase()
+          .split(" ")
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ");
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const nameField = document.getElementById("name");
+
+        nameField.addEventListener("blur", () => {
+          nameField.value = toTitleCase(nameField.value.trim());
+        });
+      });
+
+      // Reset the form fields
+      function resetForm() {
+        document.getElementById("registerForm").reset();
+      }
+    </script>
   </body>
 </html>

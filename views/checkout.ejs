@@ -16,7 +16,7 @@
         <a class="navbar-brand" href="/">The T Shirt Store</a>
         <nav>
           <a class="text-white me-3" href="/cart">Cart</a>
-          <a class="text-white" href="/account/orders">My Orders</a>
+          <a class="text-white" href="/my-account">My Account</a>
         </nav>
       </div>
     </header>
@@ -37,6 +37,7 @@
                 id="fullName"
                 class="form-control"
                 required
+                value="<%= user && user.name ? user.name : '' %>"
               />
             </div>
 
@@ -48,14 +49,18 @@
                 id="email"
                 class="form-control"
                 required
+                value="<%= user && user.email ? user.email : '' %>"
               />
             </div>
 
             <div class="mb-3">
-              <label for="phone" class="form-label"
-                >Phone Number (optional)</label
-              >
-              <input type="tel" name="phone" id="phone" class="form-control" />
+              <label for="phone" class="form-label">Phone Number (optional)</label>
+              <input
+                type="tel"
+                name="phone"
+                id="phone"
+                class="form-control"
+              />
             </div>
 
             <div class="mb-3">
@@ -110,25 +115,29 @@
         <div class="col-md-6">
           <h3>Order Summary</h3>
           <% if (cart.length === 0) { %>
-          <p>Your cart is empty.</p>
+            <p>Your cart is empty.</p>
           <% } else { %>
-          <ul class="list-group mb-3">
-            <% let total = 0; %> <% cart.forEach(item => { %>
-            <li class="list-group-item d-flex justify-content-between lh-sm">
-              <div>
-                <h6 class="my-0"><%= item.name %> (Size: <%= item.size %>)</h6>
-                <small class="text-muted">Qty: <%= item.quantity %></small>
-              </div>
-              <span class="text-muted"
-                >£<%= (item.price * item.quantity).toFixed(2) %></span
-              >
-            </li>
-            <% total += item.price * item.quantity; %> <% }); %>
-            <li class="list-group-item d-flex justify-content-between">
-              <span>Total</span>
-              <strong>£<%= total.toFixed(2) %></strong>
-            </li>
-          </ul>
+            <ul class="list-group mb-3">
+              <% let total = 0; %>
+              <% cart.forEach(item => { %>
+                <li class="list-group-item d-flex justify-content-between lh-sm">
+                  <div>
+                    <h6 class="my-0">
+                      <%= item.name %> (Size: <%= item.size %>)
+                    </h6>
+                    <small class="text-muted">Qty: <%= item.quantity %></small>
+                  </div>
+                  <span class="text-muted">
+                    £<%= (item.price * item.quantity).toFixed(2) %>
+                  </span>
+                </li>
+                <% total += item.price * item.quantity; %>
+              <% }); %>
+              <li class="list-group-item d-flex justify-content-between">
+                <span>Total</span>
+                <strong>£<%= total.toFixed(2) %></strong>
+              </li>
+            </ul>
           <% } %>
         </div>
       </div>
