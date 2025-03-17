@@ -54,6 +54,37 @@ export const processCheckout = async (req, res) => {
   try {
     const db = await dbPromise;
 
+    // ✅ Stock validation BEFORE proceeding
+    for (const item of cart) {
+      const { productId, size, quantity } = item;
+
+      // Check current stock for this product/size
+      const stock = await db.get(
+        `SELECT quantity FROM product_stock WHERE product_id = ? AND size = ?`,
+        [productId, size]
+      );
+
+      if (!stock || stock.quantity < quantity) {
+        console.warn(
+          `❗ Not enough stock for "${
+            item.name
+          }" (Size: ${size}). Requested: ${quantity}, Available: ${
+            stock ? stock.quantity : 0
+          }`
+        );
+
+        return res.status(400).render("checkout", {
+          cart,
+          user: req.session.token ? jwt.decode(req.session.token) : null,
+          session: req.session,
+          error: `Sorry! Only ${stock ? stock.quantity : 0} left for "${
+            item.name
+          }" (Size: ${size}). Please update your cart.`,
+        });
+      }
+    }
+
+    // ✅ If we got here, stock is OK — continue processing the order
     const totalAmount = cart.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0
@@ -71,7 +102,7 @@ export const processCheckout = async (req, res) => {
     const userId = decodedUser.id;
     const orderNumber = generateOrderNumber();
 
-    // Insert the order
+    // ✅ Insert the order
     const orderResult = await db.run(
       `INSERT INTO orders (user_id, order_date, total_amount, status, order_number)
        VALUES (?, datetime('now'), ?, ?, ?)`,
@@ -81,7 +112,7 @@ export const processCheckout = async (req, res) => {
     const orderId = orderResult.lastID;
     console.log(`✅ Order #${orderId} created`);
 
-    // Insert shipping address
+    // ✅ Insert shipping address
     await db.run(
       `INSERT INTO shipping_addresses
        (order_id, full_name, street, address_line2, city, postcode, country, phone, email)
@@ -101,7 +132,7 @@ export const processCheckout = async (req, res) => {
 
     console.log(`✅ Shipping address saved for order #${orderId}`);
 
-    // Insert order items + update stock
+    // ✅ Insert order items + update stock
     for (const item of cart) {
       const { productId, size, quantity, price } = item;
 

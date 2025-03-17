@@ -1,99 +1,112 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title><%= product.name %> | The T Shirt Store</title>
+<head>
+  <meta charset="UTF-8" />
+  <title><%= product.name %> - The T Shirt Store</title>
 
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+</head>
 
-    <style>
-      body {
-        background-color: #f8f9fa;
-      }
+<body>
+  <!-- Shared Header Include -->
+  <%- include('partials/header', { cart: cart, session: session }) %>
 
-      .product-image {
-        max-width: 100%;
-        height: auto;
-        border-radius: 10px;
-        margin-bottom: 20px;
-      }
+  <!-- Product Details Section -->
+  <main class="container my-5">
+    <div class="row">
+      <!-- Product Image -->
+      <div class="col-md-6">
+        <img src="<%= product.image %>" alt="<%= product.name %>" class="img-fluid" />
+      </div>
 
-      .btn-buy {
-        background-color: #28a745;
-        color: white;
-      }
+      <!-- Product Info & Add to Cart -->
+      <div class="col-md-6">
+        <h2><%= product.name %></h2>
+        <p><%= product.description %></p>
+        <p><strong>Color:</strong> <%= product.color %></p>
+        <p><strong>Price:</strong> £<%= product.price.toFixed(2) %></p>
 
-      footer {
-        margin-top: 50px;
-        padding: 20px;
-        text-align: center;
-        background-color: #343a40;
-        color: #fff;
-      }
-    </style>
-  </head>
+        <!-- Add to Cart Form -->
+        <form id="addToCartForm" action="/cart/add" method="POST">
+          <input type="hidden" name="productId" value="<%= product.id %>" />
 
-  <body>
-    <!-- Shared Header Include -->
-    <%- include('partials/header', { cart: cart }) %>
+          <!-- Select Size -->
+          <div class="mb-3">
+            <label for="size" class="form-label">Select Size</label>
+            <select class="form-select" id="size" name="size" required>
+              <% if (product && product.sizes && product.sizes.length > 0) { %>
+                <% product.sizes.forEach(sizeObj => { %>
+                  <option 
+                    value="<%= sizeObj.size %>" 
+                    data-stock="<%= sizeObj.quantity %>">
+                    <%= sizeObj.size %> (In stock: <%= sizeObj.quantity %>)
+                  </option>
+                <% }); %>
+              <% } else { %>
+                <option disabled>No sizes available</option>
+              <% } %>
+            </select>
+          </div>
 
-    <main class="container my-5">
-      <div class="row">
-        <div class="col-md-6">
-          <img
-            src="<%= product.image %>"
-            alt="<%= product.name %>"
-            class="product-image"
-          />
+          <!-- Quantity -->
+          <div class="mb-3">
+            <label for="quantity" class="form-label">Quantity</label>
+            <input type="number" id="quantity" name="quantity" class="form-control" min="1" value="1" required />
+          </div>
+
+          <!-- Add to Cart Button -->
+          <button type="submit" class="btn btn-success w-100">Add to Cart</button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <!-- Bootstrap Modal for Error Message -->
+  <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-warning text-dark">
+          <h5 class="modal-title" id="errorModalLabel">Oops!</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-
-        <div class="col-md-6">
-          <h1><%= product.name %></h1>
-          <p><%= product.description %></p>
-          <p><strong>Color:</strong> <%= product.category %></p>
-          <p class="h4">£<%= product.price.toFixed(2) %></p>
-
-          <form action="/cart/add" method="POST">
-            <input type="hidden" name="productId" value="<%= product.id %>" />
-
-            <div class="mb-3">
-              <label for="sizeSelect" class="form-label">Select Size</label>
-              <select name="size" id="sizeSelect" class="form-select" required>
-                <% stock.forEach(item => { %> <% if (item.quantity > 0) { %>
-                <option value="<%= item.size %>">
-                  <%= item.size %> (In stock: <%= item.quantity %>)
-                </option>
-                <% } else { %>
-                <option value="<%= item.size %>" disabled>
-                  <%= item.size %> (Out of stock)
-                </option>
-                <% } %> <% }) %>
-              </select>
-            </div>
-
-            <div class="mb-3">
-              <label for="quantity" class="form-label">Quantity</label>
-              <input
-                type="number"
-                name="quantity"
-                id="quantity"
-                class="form-control"
-                value="1"
-                min="1"
-                required
-              />
-            </div>
-
-            <button type="submit" class="btn btn-buy w-100">Add to Cart</button>
-          </form>
+        <div class="modal-body" id="errorModalBody">
+          <!-- Error message inserted by JS -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
         </div>
       </div>
-    </main>
+    </div>
+  </div>
 
-    <!-- Shared Footer Include -->
-    <%- include('partials/footer') %>
-  </body>
+  <!-- Shared Footer Include -->
+  <%- include('partials/footer') %>
+
+  <!-- Bootstrap Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Client-Side Validation Script -->
+  <script>
+    const addToCartForm = document.getElementById("addToCartForm");
+    const sizeSelect = document.getElementById("size");
+    const quantityInput = document.getElementById("quantity");
+
+    addToCartForm.addEventListener("submit", function (e) {
+      const selectedOption = sizeSelect.options[sizeSelect.selectedIndex];
+      const availableStock = parseInt(selectedOption.getAttribute("data-stock"), 10);
+      const requestedQuantity = parseInt(quantityInput.value, 10);
+
+      if (requestedQuantity > availableStock) {
+        e.preventDefault(); // Stop form submission
+
+        const errorModalBody = document.getElementById("errorModalBody");
+        errorModalBody.textContent = `Only ${availableStock} left for size "${selectedOption.value}".`;
+
+        const errorModal = new bootstrap.Modal(document.getElementById("errorModal"));
+        errorModal.show();
+      }
+    });
+  </script>
+</body>
 </html>

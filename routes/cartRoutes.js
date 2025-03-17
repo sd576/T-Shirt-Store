@@ -3,6 +3,7 @@ import {
   viewCart,
   addToCart,
   removeFromCart,
+  updateCart,
 } from "../controllers/cartController.js";
 
 const router = express.Router();
@@ -15,5 +16,8 @@ router.post("/add", addToCart);
 
 // POST /cart/remove → Remove item from cart
 router.post("/remove", removeFromCart);
+
+// POST /cart/update → Update quantities
+router.post("/update", updateCart); // 👈 New!
 
 export default router;
