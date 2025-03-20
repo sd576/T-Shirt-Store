@@ -27,7 +27,7 @@ router.get("/register", (req, res) => {
 
 // GET: My Account page
 router.get("/my-account", (req, res) => {
-  const user = req.session.userInfo; // ✅ This fixes it
+  const user = req.session.userInfo;
 
   if (!user) {
     return res.redirect("/login");
@@ -50,7 +50,7 @@ router.get("/my-account", (req, res) => {
   ];
 
   res.render("my-account", {
-    user, // ✅ Now populated properly
+    user,
     orders,
     cart: req.session.cart || [],
   });

@@ -45,6 +45,58 @@ export const registerUser = async (req, res) => {
   }
 };
 
+export const apiRegisterUser = async (req, res) => {
+  const { name, email, password } = req.body;
+
+  try {
+    const db = await dbPromise;
+
+    const userExists = await db.get("SELECT * FROM users WHERE email = ?", [
+      email,
+    ]);
+
+    if (userExists) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    console.log({
+      name,
+      email,
+      hashedPassword,
+    });
+
+    const result = await db.run(
+      "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
+      [name, email, hashedPassword]
+    );
+
+    const token = jwt.sign(
+      {
+        id: result.lastID,
+        email: email,
+        name: name,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || "1h" }
+    );
+
+    res.status(201).json({
+      message: "User registered successfully (API",
+      token: token,
+      user: {
+        id: result.lastID,
+        name: name,
+        email: email,
+      },
+    });
+  } catch (error) {
+    console.error("❌ API Registration error:", error);
+    res.status(500).json({ message: "Registration failed" });
+  }
+};
+
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
@@ -135,16 +187,14 @@ export const apiLoginUser = async (req, res) => {
       user: {
         id: user.id,
         name: user.name,
-        email: user.email
-      }
+        email: user.email,
+      },
     });
-
   } catch (error) {
     console.error("❌ API login error:", error);
     res.status(500).json({ message: "Server error during login" });
   }
 };
-
 
 export const logoutUser = (req, res) => {
   res

@@ -31,12 +31,7 @@
       <div class="alert alert-danger w-50 mx-auto"><%= error %></div>
       <% } %>
 
-      <form
-        id="registerForm"
-        action="/register"
-        method="POST"
-        class="w-50 mx-auto"
-      >
+      <form id="registerForm" class="w-50 mx-auto" novalidate>
         <div class="mb-3">
           <label for="name" class="form-label">Name</label>
           <input
@@ -46,6 +41,7 @@
             class="form-control"
             placeholder="Enter your name"
             required
+            autocomplete="off"
           />
         </div>
 
@@ -58,6 +54,7 @@
             class="form-control"
             placeholder="Enter your email"
             required
+            autocomplete="off"
           />
         </div>
 
@@ -70,6 +67,7 @@
             class="form-control"
             placeholder="Create a password"
             required
+            autocomplete="off"
           />
         </div>
 
@@ -100,10 +98,45 @@
       }
 
       document.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById("registerForm");
         const nameField = document.getElementById("name");
 
+        // Name formatting on blur
         nameField.addEventListener("blur", () => {
           nameField.value = toTitleCase(nameField.value.trim());
+        });
+
+        // Handle form submission with fetch
+        form.addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const name = document.getElementById("name").value.trim();
+          const email = document.getElementById("email").value.trim();
+          const password = document.getElementById("password").value.trim();
+
+          try {
+            const res = await fetch("/api/auth/register", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ name, email, password }),
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+              alert("✅ Registration successful!");
+
+              // Optional: redirect
+              window.location.href = "/login";
+            } else {
+              alert(`❌ ${data.message}`);
+            }
+          } catch (error) {
+            alert("❌ Registration failed. Please try again.");
+            console.error("Fetch error:", error);
+          }
         });
       });
 
