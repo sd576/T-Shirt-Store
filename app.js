@@ -44,10 +44,19 @@ app.use(
 
 // ✅ res.locals.user middleware (after session, before routes)
 app.use((req, res, next) => {
-  console.log("✅ res.locals.user:", req.session.userInfo); // Add this temporarily to debug
-  res.locals.user = req.session.userInfo || null;
+  const userInfo = req.session.userInfo || null;
+
+  res.locals.user = userInfo;
+
+  if (userInfo && userInfo.name) {
+    res.locals.firstName = userInfo.name.split(' ')[0];
+  } else {
+    res.locals.firstName = null;
+  }
+
   next();
 });
+
 
 // Static files (CSS, JS, Images)
 app.use(express.static(path.join(__dirname, "public")));

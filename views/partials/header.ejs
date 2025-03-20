@@ -3,10 +3,14 @@
     <a class="navbar-brand" href="/">The T Shirt Store</a>
 
     <nav class="navbar-nav ms-auto d-flex flex-row align-items-center gap-3">
-      <!-- Home -->
+      <% if (firstName) { %>
+      <!-- Welcome Message -->
+      <span class="nav-link text-white"> Welcome, <%= firstName %>! </span>
+
+      <!-- Home Link -->
       <a class="nav-link text-white" href="/">Home</a>
 
-      <!-- Cart Icon -->
+      <!-- Cart Link (always visible) -->
       <a class="nav-link text-white position-relative" href="/cart">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -21,7 +25,6 @@
           />
         </svg>
 
-        <!-- ✅ Calculate cartCount by summing quantities -->
         <% let cartCount = 0; if (cart && cart.length) { cart.forEach(item => {
         cartCount += item.quantity; }); } %> <% if (cartCount > 0) { %>
         <span
@@ -32,17 +35,19 @@
         <% } %>
       </a>
 
-      <!-- Login -->
-      <a class="nav-link text-white" href="/login">Login</a>
-
-      <!-- Register -->
-      <a class="nav-link text-white" href="/register">Register</a>
-
       <!-- My Account -->
       <a class="nav-link text-white" href="/my-account">My Account</a>
 
-      <!-- Logout -->
-      <a class="btn btn-outline-secondary" href="/logout">Logout</a>
+      <!-- Logout Button -->
+      <form action="/logout" method="POST" class="d-inline">
+        <button type="submit" class="btn btn-outline-light">Logout</button>
+      </form>
+
+      <% } else { %>
+      <!-- Login and Register -->
+      <a class="nav-link text-white" href="/login">Login</a>
+      <a class="nav-link text-white" href="/register">Register</a>
+      <% } %>
     </nav>
   </div>
 </header>
