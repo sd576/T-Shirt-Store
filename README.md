@@ -25,6 +25,8 @@ A simple and responsive T-Shirt eCommerce website.
 - 📱 **Responsive Design**  
   Fully responsive and mobile-friendly design for desktop, tablet, and mobile users.
 
+- 🗄️ **Full Access to the Backend SQLite Database**  
+  Direct access to the SQLite database for viewing and managing data.
 
 ## 🛠️ Built With
 
@@ -58,6 +60,7 @@ Run the following two commands (shown with what they do):
 
 - **`npm run db`** → Seeds the database.
 - **`npm run start`** → Starts the server.
+- **`npm run sqlite`** → Opens the SQLite CLI.
 
 Once the server is running, open your browser and go to:
 
