@@ -196,6 +196,62 @@ export const apiLoginUser = async (req, res) => {
   }
 };
 
+// ✅ Patch user account
+export const updateUserAccount = async (req, res) => {
+  const { id } = req.params;
+  const { name, email, password } = req.body;
+
+  try {
+    const db = await dbPromise;
+
+    // Check if user exists
+    const existingUser = await db.get("SELECT * FROM users WHERE id = ?", [id]);
+    if (!existingUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Build update fields dynamically
+    const updates = [];
+    const values = []; // ✅ renamed consistently
+
+    if (name) {
+      updates.push("name = ?");
+      values.push(name);
+    }
+
+    if (email) {
+      updates.push("email = ?");
+      values.push(email);
+    }
+
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      updates.push("password = ?");
+      values.push(hashedPassword);
+    }
+
+    if (updates.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "No valid fields provided to update" });
+    }
+
+    values.push(id); // ✅ now matches the array
+
+    // Perform the update
+    const query = `UPDATE users SET ${updates.join(", ")} WHERE id = ?`;
+    await db.run(query, values); // ✅ using the correct array
+
+    res.status(200).json({
+      message: "User updated successfully",
+      updatedFields: { name, email },
+    });
+  } catch (error) {
+    console.error("❌ Update user error:", error);
+    res.status(500).json({ message: "Error updating user" });
+  }
+};
+
 // ✅ Web logout (session-based)
 export const logoutUser = (req, res) => {
   req.session.destroy((err) => {

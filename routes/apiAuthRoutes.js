@@ -3,6 +3,7 @@ import {
   apiLoginUser,
   apiRegisterUser,
   apiLogoutUser,
+  updateUserAccount,
 } from "../controllers/authController.js";
 
 const router = express.Router();
@@ -15,5 +16,8 @@ router.post("/login", apiLoginUser);
 
 // GET /api/auth/logout
 router.get("/logout", apiLogoutUser);
+
+// PATCH /api/auth/update
+router.patch("/users/:id", updateUserAccount);
 
 export default router;
