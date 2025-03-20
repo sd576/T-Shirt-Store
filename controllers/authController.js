@@ -196,8 +196,19 @@ export const apiLoginUser = async (req, res) => {
   }
 };
 
+// ✅ Web logout (session-based)
 export const logoutUser = (req, res) => {
-  res
-    .status(200)
-    .json({ message: "Logout successful (discard token client-side)" });
+  req.session.destroy((err) => {
+    if (err) {
+      console.error("Logout error:", err);
+      return res.redirect("/my-account");
+    }
+    res.redirect("/login");
+  });
+};
+
+export const apiLogoutUser = (req, res) => {
+  res.status(200).json({
+    message: "Logout successful (discard token client-side)",
+  });
 };
