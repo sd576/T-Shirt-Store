@@ -25,7 +25,7 @@
 
       <% if (error) { %>
       <div class="alert alert-danger w-50 mx-auto"><%= error %></div>
-      <% } %> <% if (success) { %>
+      <% } else if (success) { %>
       <div class="alert alert-success w-50 mx-auto"><%= success %></div>
       <% } %>
 
@@ -106,7 +106,7 @@
       function resetForm() {
         document.getElementById("loginForm").reset();
       }
-
+    
       document
         .getElementById("forgot-password-link")
         .addEventListener("click", function (e) {
@@ -115,5 +115,14 @@
           form.style.display = form.style.display === "none" ? "block" : "none";
         });
     </script>
+    
+    <% if (success) { %>
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        document.getElementById('loginForm').reset();
+      });
+    </script>
+    <% } %>
+    
   </body>
 </html>
