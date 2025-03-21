@@ -22,7 +22,7 @@ export const registerUser = async (req, res) => {
 
     const result = await db.run(
       "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
-      [name, email, hashedPassword]
+      [name, email, hashedPassword],
     );
 
     const token = jwt.sign(
@@ -32,7 +32,7 @@ export const registerUser = async (req, res) => {
         name: name,
       },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "1h" }
+      { expiresIn: process.env.JWT_EXPIRES_IN || "1h" },
     );
 
     res.status(201).json({
@@ -69,7 +69,7 @@ export const apiRegisterUser = async (req, res) => {
 
     const result = await db.run(
       "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
-      [name, email, hashedPassword]
+      [name, email, hashedPassword],
     );
 
     const token = jwt.sign(
@@ -79,7 +79,7 @@ export const apiRegisterUser = async (req, res) => {
         name: name,
       },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "1h" }
+      { expiresIn: process.env.JWT_EXPIRES_IN || "1h" },
     );
 
     res.status(201).json({
@@ -175,7 +175,7 @@ export const apiLoginUser = async (req, res) => {
     const token = jwt.sign(
       { id: user.id, email: user.email },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "1h" }
+      { expiresIn: process.env.JWT_EXPIRES_IN || "1h" },
     );
 
     console.log("✅ API logged in user:", user.email);

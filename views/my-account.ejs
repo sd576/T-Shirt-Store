@@ -23,6 +23,16 @@
     <main class="container my-5">
       <h1 class="my-4">My Account</h1>
 
+      <!-- User Details -->
+      <section class="mb-4">
+        <h2>User Details</h2>
+
+        <div class="card p-3">
+          <p><strong>Full Name:</strong> <%= user.name %></p>
+          <p><strong>Email:</strong> <%= user.email %></p>
+        </div>
+      </section>
+
       <!-- Orders Section -->
       <% if (orders.length === 0) { %>
       <p>You haven't placed any orders yet.</p>
@@ -48,6 +58,42 @@
         </tbody>
       </table>
       <% } %>
+
+      <!-- Shipping Address Section -->
+      <section class="mt-5">
+        <h2>Shipping Address</h2>
+
+        <% if (!shippingAddress) { %>
+        <p>You haven't added a shipping address yet.</p>
+        <a href="/my-account/edit-address" class="btn btn-primary mt-3"
+          >Add Address</a
+        >
+        <% } else { %>
+        <!-- Existing address display -->
+        <div class="card p-3 mb-4">
+          <p><strong>Full Name:</strong> <%= shippingAddress.full_name %></p>
+          <p><strong>Street:</strong> <%= shippingAddress.street %></p>
+
+          <% if (shippingAddress.address_line2) { %>
+          <p>
+            <strong>Address Line 2:</strong> <%= shippingAddress.address_line2
+            %>
+          </p>
+          <% } %>
+
+          <p><strong>City:</strong> <%= shippingAddress.city %></p>
+          <p><strong>Postcode:</strong> <%= shippingAddress.postcode %></p>
+          <p><strong>Country:</strong> <%= shippingAddress.country %></p>
+          <p><strong>Phone:</strong> <%= shippingAddress.phone %></p>
+          <p><strong>Email:</strong> <%= shippingAddress.email %></p>
+
+          <!-- Edit button -->
+          <a href="/my-account/edit-address" class="btn btn-warning mt-3"
+            >Edit Address</a
+          >
+        </div>
+        <% } %>
+      </section>
     </main>
 
     <!-- Shared Footer Include -->

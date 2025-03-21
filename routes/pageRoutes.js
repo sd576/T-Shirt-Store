@@ -35,7 +35,7 @@ router.get("/product/:id", async (req, res) => {
 
     const product = await db.get(
       "SELECT * FROM products WHERE id = ?",
-      productId
+      productId,
     );
 
     if (!product) {
@@ -44,7 +44,7 @@ router.get("/product/:id", async (req, res) => {
 
     const stock = await db.all(
       "SELECT size, quantity FROM product_stock WHERE product_id = ?",
-      productId
+      productId,
     );
 
     const cart = req.session.cart || [];

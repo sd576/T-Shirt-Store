@@ -63,7 +63,7 @@ router.post("/register", registerUser);
 
 // POST: Login form submit
 router.post("/login", loginUser);
-router.get('/logout', apiLogoutUser);
+router.get("/logout", apiLogoutUser);
 
 // GET: Logout (alternative to POST logout)
 router.get("/logout", (req, res) => {

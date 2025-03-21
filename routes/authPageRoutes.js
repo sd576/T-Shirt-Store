@@ -14,6 +14,7 @@ const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:3000";
 router.get("/register", (req, res) => {
   res.render("register", {
     error: null,
+    success: null,
     cart: req.session.cart || [],
     session: req.session,
   });
@@ -35,6 +36,7 @@ router.post("/register", async (req, res) => {
     if (!response.ok) {
       return res.render("register", {
         error: data.message || "Registration failed.",
+        success: null,
         cart: req.session.cart || [],
         session: req.session,
       });
@@ -64,6 +66,7 @@ router.post("/register", async (req, res) => {
 router.get("/login", (req, res) => {
   res.render("login", {
     error: null,
+    success: null,
     cart: req.session.cart || [],
     session: req.session,
   });
@@ -85,6 +88,7 @@ router.post("/login", async (req, res) => {
     if (!response.ok) {
       return res.render("login", {
         error: data.message || "Login failed. Please check your credentials.",
+        success: null,
         cart: req.session.cart || [],
         session: req.session,
       });
@@ -101,6 +105,7 @@ router.post("/login", async (req, res) => {
     console.error("Error during login:", error);
     res.render("login", {
       error: "Server error. Please try again later.",
+      success: null,
       cart: req.session.cart || [],
       session: req.session,
     });
@@ -139,18 +144,112 @@ router.get("/my-account", async (req, res) => {
       userId
     );
 
+    // ✅ Get this user's shipping address
+    const shippingAddress = await db.get(
+      "SELECT * FROM shipping_addresses WHERE user_id = ?",
+      userId
+    );
+
     // ✅ Set session.userInfo so it syncs across pages
     req.session.userInfo = decodedUser;
 
     res.render("my-account", {
       user: decodedUser,
-      orders, // ✅ Pass orders here
+      orders,
+      shippingAddress,
       cart: req.session.cart || [],
       session: req.session,
     });
   } catch (error) {
     console.error("Error fetching my account info:", error);
     res.redirect("/login");
+  }
+});
+
+// ==================== FORGOT PASSWORD (Reset Password) ==================== //
+
+router.post("/forgot-password", async (req, res) => {
+  const { email, newPassword } = req.body;
+
+  if (!email || !newPassword) {
+    return res.render("login", {
+      error: "Both email and new password are required.",
+      success: null,
+      cart: req.session.cart || [],
+      session: req.session,
+    });
+  }
+
+  try {
+    const db = await dbPromise;
+
+    const existingUser = await db.get("SELECT * FROM users WHERE email = ?", [
+      email,
+    ]);
+
+    if (!existingUser) {
+      return res.render("login", {
+        error: "User not found.",
+        success: null,
+        cart: req.session.cart || [],
+        session: req.session,
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await db.run("UPDATE users SET password = ? WHERE email = ?", [
+      hashedPassword,
+      email,
+    ]);
+
+    return res.render("login", {
+      success:
+        "Password reset successful! You can now login with your new password.",
+      error: null,
+      cart: req.session.cart || [],
+      session: req.session,
+    });
+  } catch (error) {
+    console.error("Error resetting password:", error);
+
+    res.render("login", {
+      error: "Server error. Please try again later.",
+      success: null,
+      cart: req.session.cart || [],
+      session: req.session,
+    });
+  }
+});
+
+// ==================== EDIT SHIPPING ADDRESS FORM ==================== //
+
+router.get("/my-account/edit-address", async (req, res) => {
+  if (!req.session.token) {
+    return res.redirect("/login");
+  }
+
+  try {
+    const decodedUser = jwt.decode(req.session.token);
+    const userId = decodedUser.id;
+
+    const db = await dbPromise;
+
+    // Check if they already have an address (for pre-filling form)
+    const shippingAddress = await db.get(
+      "SELECT * FROM shipping_addresses WHERE user_id = ?",
+      userId
+    );
+
+    res.render("edit-address", {
+      user: decodedUser,
+      shippingAddress,
+      cart: req.session.cart || [],
+      session: req.session,
+    });
+  } catch (error) {
+    console.error("Error loading edit address page:", error);
+    res.redirect("/my-account");
   }
 });
 

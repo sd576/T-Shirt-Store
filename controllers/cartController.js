@@ -25,7 +25,10 @@ export const addToCart = async (req, res) => {
     const db = await dbPromise;
 
     // Get the product details
-    const product = await db.get("SELECT * FROM products WHERE id = ?", productId);
+    const product = await db.get(
+      "SELECT * FROM products WHERE id = ?",
+      productId,
+    );
 
     if (!product) {
       console.warn(`❗ Product not found for ID: ${productId}`);
@@ -35,16 +38,18 @@ export const addToCart = async (req, res) => {
     // Get the stock level for the selected size
     const stock = await db.get(
       "SELECT quantity FROM product_stock WHERE product_id = ? AND size = ?",
-      [productId, selectedSize]
+      [productId, selectedSize],
     );
 
     if (!stock || stock.quantity < quantity) {
       console.warn(
-        `❗ Not enough stock for "${product.name}" (Size: ${selectedSize}). Requested: ${quantity}, Available: ${stock ? stock.quantity : 0}`
+        `❗ Not enough stock for "${product.name}" (Size: ${selectedSize}). Requested: ${quantity}, Available: ${stock ? stock.quantity : 0}`,
       );
-      return res.status(400).send(
-        `Only ${stock ? stock.quantity : 0} left for "${product.name}" (Size: ${selectedSize})`
-      );
+      return res
+        .status(400)
+        .send(
+          `Only ${stock ? stock.quantity : 0} left for "${product.name}" (Size: ${selectedSize})`,
+        );
     }
 
     // Initialize cart if it doesn't exist yet
@@ -54,13 +59,13 @@ export const addToCart = async (req, res) => {
 
     // Check if item already exists in the cart
     const existingItem = req.session.cart.find(
-      (item) => item.productId === product.id && item.size === selectedSize
+      (item) => item.productId === product.id && item.size === selectedSize,
     );
 
     if (existingItem) {
       existingItem.quantity += quantity;
       console.log(
-        `✅ Updated "${product.name}" (Size: ${selectedSize}) in cart. New Qty: ${existingItem.quantity}`
+        `✅ Updated "${product.name}" (Size: ${selectedSize}) in cart. New Qty: ${existingItem.quantity}`,
       );
     } else {
       req.session.cart.push({
@@ -72,7 +77,7 @@ export const addToCart = async (req, res) => {
         price: product.price,
       });
       console.log(
-        `✅ Added "${product.name}" (Size: ${selectedSize}, Qty: ${quantity}) to cart`
+        `✅ Added "${product.name}" (Size: ${selectedSize}, Qty: ${quantity}) to cart`,
       );
     }
 
@@ -94,10 +99,12 @@ export const removeFromCart = (req, res) => {
 
   // Filter out the item by productId and size
   req.session.cart = req.session.cart.filter(
-    (item) => item.productId !== productId || item.size !== selectedSize
+    (item) => item.productId !== productId || item.size !== selectedSize,
   );
 
-  console.log(`✅ Removed product ${productId} (Size: ${selectedSize}) from cart`);
+  console.log(
+    `✅ Removed product ${productId} (Size: ${selectedSize}) from cart`,
+  );
 
   res.redirect("/cart");
 };
@@ -118,12 +125,12 @@ export const updateCart = (req, res) => {
 
     if (!isNaN(newQty) && newQty > 0) {
       console.log(
-        `✅ Updated "${item.name}" (Size: ${item.size}) to Qty: ${newQty}`
+        `✅ Updated "${item.name}" (Size: ${item.size}) to Qty: ${newQty}`,
       );
       item.quantity = newQty;
     } else {
       console.warn(
-        `❗ Invalid quantity (${newQty}) for "${item.name}" (Size: ${item.size})`
+        `❗ Invalid quantity (${newQty}) for "${item.name}" (Size: ${item.size})`,
       );
     }
   });

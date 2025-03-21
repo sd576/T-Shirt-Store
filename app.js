@@ -39,7 +39,7 @@ app.use(
     secret: "secret-key", // Replace with process.env.SESSION_SECRET in production
     resave: false,
     saveUninitialized: true,
-  })
+  }),
 );
 
 // ✅ res.locals.user middleware (after session, before routes)
@@ -49,14 +49,13 @@ app.use((req, res, next) => {
   res.locals.user = userInfo;
 
   if (userInfo && userInfo.name) {
-    res.locals.firstName = userInfo.name.split(' ')[0];
+    res.locals.firstName = userInfo.name.split(" ")[0];
   } else {
     res.locals.firstName = null;
   }
 
   next();
 });
-
 
 // Static files (CSS, JS, Images)
 app.use(express.static(path.join(__dirname, "public")));

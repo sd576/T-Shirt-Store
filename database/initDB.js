@@ -99,6 +99,7 @@ async function init() {
     CREATE TABLE IF NOT EXISTS shipping_addresses (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       order_id INTEGER NOT NULL,
+      user_id INTEGER NOT NULL,
       full_name TEXT NOT NULL,
       street TEXT NOT NULL,
       address_line2 TEXT,
@@ -108,6 +109,7 @@ async function init() {
       phone TEXT,
       email TEXT,
       FOREIGN KEY (order_id) REFERENCES orders (id)
+      FOREIGN KEY (user_id) REFERENCES users (id)
     );
   `);
 
@@ -178,10 +180,11 @@ async function init() {
   for (const address of shippingAddresses) {
     await db.run(
       `INSERT INTO shipping_addresses 
-        (order_id, full_name, street, address_line2, city, postcode, country, phone, email)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        (order_id, user_id, full_name, street, address_line2, city, postcode, country, phone, email)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         address.order_id,
+        address.user_id,
         address.full_name,
         address.street,
         address.address_line2 || "",

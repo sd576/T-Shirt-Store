@@ -77,7 +77,7 @@ export const processCheckout = async (req, res) => {
 
       const stock = await db.get(
         `SELECT quantity FROM product_stock WHERE product_id = ? AND size = ?`,
-        [productId, size]
+        [productId, size],
       );
 
       if (!stock || stock.quantity < quantity) {
@@ -86,7 +86,7 @@ export const processCheckout = async (req, res) => {
             item.name
           }" (Size: ${size}). Requested: ${quantity}, Available: ${
             stock ? stock.quantity : 0
-          }`
+          }`,
         );
 
         return res.status(400).render("checkout", {
@@ -103,7 +103,7 @@ export const processCheckout = async (req, res) => {
     // ✅ If stock is OK → Process the order
     const totalAmount = cart.reduce(
       (sum, item) => sum + item.price * item.quantity,
-      0
+      0,
     );
 
     const guestCheckout = checkoutAsGuest === "on" || !req.session.token;
@@ -127,7 +127,7 @@ export const processCheckout = async (req, res) => {
     const orderResult = await db.run(
       `INSERT INTO orders (user_id, order_date, total_amount, status, order_number)
        VALUES (?, datetime('now'), ?, ?, ?)`,
-      [userId, totalAmount, "processing", orderNumber]
+      [userId, totalAmount, "processing", orderNumber],
     );
 
     const orderId = orderResult.lastID;
@@ -148,7 +148,7 @@ export const processCheckout = async (req, res) => {
         country,
         phone || "",
         email || "",
-      ]
+      ],
     );
 
     console.log(`✅ Shipping address saved for order #${orderId}`);
@@ -160,14 +160,14 @@ export const processCheckout = async (req, res) => {
       await db.run(
         `INSERT INTO order_items (order_id, product_id, size, quantity, price)
          VALUES (?, ?, ?, ?, ?)`,
-        [orderId, productId, size, quantity, price]
+        [orderId, productId, size, quantity, price],
       );
 
       await db.run(
         `UPDATE product_stock
          SET quantity = quantity - ?
          WHERE product_id = ? AND size = ?`,
-        [quantity, productId, size]
+        [quantity, productId, size],
       );
     }
 
@@ -180,7 +180,7 @@ export const processCheckout = async (req, res) => {
     res.redirect(
       `/checkout/success?orderId=${orderId}&guestCheckout=${
         guestCheckout ? "1" : "0"
-      }`
+      }`,
     );
   } catch (err) {
     console.error("❌ Error during checkout process:", err);
@@ -213,7 +213,7 @@ export const showCheckoutSuccess = async (req, res) => {
 
     const shippingAddress = await db.get(
       `SELECT * FROM shipping_addresses WHERE order_id = ?`,
-      [orderId]
+      [orderId],
     );
 
     const orderItems = await db.all(
@@ -221,7 +221,7 @@ export const showCheckoutSuccess = async (req, res) => {
        FROM order_items oi
        JOIN products p ON oi.product_id = p.id
        WHERE oi.order_id = ?`,
-      [orderId]
+      [orderId],
     );
 
     console.log(`✅ Fetched order summary for order #${orderId}`);

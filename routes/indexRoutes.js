@@ -42,7 +42,7 @@ router.get("/product/:id", async (req, res) => {
     // Get the product details from the database
     const product = await db.get(
       "SELECT * FROM products WHERE id = ?",
-      productId
+      productId,
     );
 
     // If the product doesn't exist, show a 404 page
@@ -53,7 +53,7 @@ router.get("/product/:id", async (req, res) => {
     // Get the stock levels for each size of the product
     const stock = await db.all(
       "SELECT size, quantity FROM product_stock WHERE product_id = ?",
-      productId
+      productId,
     );
 
     // Attach stock as `sizes` property on product (makes EJS simpler)
