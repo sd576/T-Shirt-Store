@@ -207,8 +207,13 @@ router.post("/complete", async (req, res) => {
 
     // ✅ Clear session after successful order
     req.session.cart = [];
-    req.session.guestInfo = null;
-    req.session.userInfo = null;
+
+    if (req.session.guestInfo) {
+      req.session.guestInfo = null;
+    } else {
+      // ✅ Leave userInfo intact so logged-in users stay logged in
+      console.log("✅ Logged-in user session retained:", req.session.userInfo);
+    }
 
     res.render("checkout-success", {
       session: req.session,
