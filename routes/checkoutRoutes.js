@@ -49,6 +49,7 @@ router.get("/", async (req, res) => {
       session: req.session,
       user,
       cart: req.session.cart || [],
+      guestCheckout: false, // ✅ Remove the guest option if logged in
     });
   } catch (error) {
     console.error("❌ Error loading checkout page:", error);
@@ -87,13 +88,18 @@ router.post("/complete", async (req, res) => {
   const db = await dbPromise;
   const cart = req.session.cart || [];
 
-  if (!cart.length) return res.redirect("/cart");
+  if (!cart.length) {
+    console.log("❌ Cart is empty at checkout complete");
+    return res.redirect("/cart");
+  }
 
   const decodedUser = req.session.token ? jwt.decode(req.session.token) : null;
   const userSession = req.session.userInfo || req.session.guestInfo;
 
-  if (!userSession || !userSession.name || !userSession.email)
+  if (!userSession || !userSession.name || !userSession.email) {
+    console.log("❌ Missing user session data at complete checkout");
     return res.redirect("/checkout");
+  }
 
   try {
     await db.run("BEGIN");
@@ -117,18 +123,20 @@ router.post("/complete", async (req, res) => {
 
     const orderId = result.lastID;
 
-    for (const item of cart) {
-      await db.run(
-        `
-          INSERT INTO order_items (order_id, product_id, size, quantity, price)
-          VALUES (?, ?, ?, ?, ?)
-        `,
-        [orderId, item.productId, item.size, item.quantity, item.price]
+    let shippingAddress = userSession.shippingAddress || {};
+
+    if (decodedUser) {
+      const dbShippingAddress = await db.get(
+        "SELECT * FROM shipping_addresses WHERE user_id = ? ORDER BY id DESC LIMIT 1",
+        decodedUser.id
       );
+
+      if (dbShippingAddress) {
+        shippingAddress = dbShippingAddress;
+      }
     }
 
-    const shippingAddress = userSession.shippingAddress || {};
-
+    // ✅ Insert shipping address for the order
     await db.run(
       `
         INSERT INTO shipping_addresses
@@ -149,6 +157,25 @@ router.post("/complete", async (req, res) => {
       ]
     );
 
+    // ✅ Insert order items from the cart
+    const insertOrderItem = await db.prepare(`
+      INSERT INTO order_items
+        (order_id, product_id, size, quantity, price)
+      VALUES (?, ?, ?, ?, ?)
+    `);
+
+    for (const item of cart) {
+      await insertOrderItem.run(
+        orderId,
+        item.productId,
+        item.size,
+        item.quantity,
+        item.price
+      );
+    }
+
+    await insertOrderItem.finalize();
+
     await db.run("COMMIT");
 
     const order = await db.get("SELECT * FROM orders WHERE id = ?", orderId);
@@ -161,6 +188,24 @@ router.post("/complete", async (req, res) => {
       orderId
     );
 
+    console.log("✅ Order Complete:", {
+      order,
+      orderItems,
+      shippingAddressData,
+    });
+
+    if (!order || !shippingAddressData) {
+      console.error(
+        "❌ Missing order or shipping address for checkout-success page."
+      );
+      return res.render("checkout-success", {
+        session: req.session,
+        error:
+          "We couldn't retrieve your order details. Please check your order history.",
+      });
+    }
+
+    // ✅ Clear session after successful order
     req.session.cart = [];
     req.session.guestInfo = null;
     req.session.userInfo = null;
@@ -216,13 +261,11 @@ router.get("/review", async (req, res) => {
   let shippingAddress = {};
 
   if (decodedUser) {
-    // ✅ Get shipping address for logged-in user from DB
     shippingAddress = await db.get(
       "SELECT * FROM shipping_addresses WHERE user_id = ? ORDER BY id DESC LIMIT 1",
       decodedUser.id
     );
   } else {
-    // ✅ Get shipping address for guest from session
     shippingAddress = req.session.guestInfo?.shippingAddress || {};
   }
 

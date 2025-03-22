@@ -16,7 +16,7 @@ const dbPromise = open({
 async function init() {
   const db = await dbPromise;
 
-  console.log("⚠️  Dropping existing tables...");
+  console.log("⚠️ Dropping existing tables...");
   const tables = [
     "shipping_addresses",
     "order_items",
@@ -57,7 +57,7 @@ async function init() {
     );
   `);
 
-  // Users Table (with Guest User concept)
+  // Users Table
   await db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -67,7 +67,7 @@ async function init() {
     );
   `);
 
-  // Orders Table (matching checkout process)
+  // Orders Table
   await db.exec(`
     CREATE TABLE IF NOT EXISTS orders (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -80,7 +80,7 @@ async function init() {
     );
   `);
 
-  // Order Items Table
+  // Order Items Table (no product_name column)
   await db.exec(`
     CREATE TABLE IF NOT EXISTS order_items (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -96,22 +96,22 @@ async function init() {
 
   // Shipping Addresses Table
   await db.exec(`
-  CREATE TABLE IF NOT EXISTS shipping_addresses (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    order_id INTEGER,
-    user_id INTEGER NOT NULL,
-    full_name TEXT NOT NULL,
-    street TEXT NOT NULL,
-    address_line2 TEXT,
-    city TEXT NOT NULL,
-    postcode TEXT NOT NULL,
-    country TEXT NOT NULL,
-    phone TEXT,
-    email TEXT,
-    FOREIGN KEY (order_id) REFERENCES orders (id),
-    FOREIGN KEY (user_id) REFERENCES users (id)
-  );
-`);
+    CREATE TABLE IF NOT EXISTS shipping_addresses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      order_id INTEGER,
+      user_id INTEGER NOT NULL,
+      full_name TEXT NOT NULL,
+      street TEXT NOT NULL,
+      address_line2 TEXT,
+      city TEXT NOT NULL,
+      postcode TEXT NOT NULL,
+      country TEXT NOT NULL,
+      phone TEXT,
+      email TEXT,
+      FOREIGN KEY (order_id) REFERENCES orders (id),
+      FOREIGN KEY (user_id) REFERENCES users (id)
+    );
+  `);
 
   console.log("✅ Tables created!");
 
@@ -139,7 +139,7 @@ async function init() {
     }
   }
 
-  // Seed users (including guest user)
+  // Seed users
   console.log("🌱 Seeding users...");
   for (const user of users) {
     await db.run(
@@ -165,7 +165,7 @@ async function init() {
     );
   }
 
-  // Seed order items
+  // Seed order items (corrected)
   console.log("🌱 Seeding order items...");
   for (const item of orderItems) {
     await db.run(

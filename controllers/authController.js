@@ -109,6 +109,7 @@ export const loginUser = async (req, res) => {
       console.log("❌ No user found for email:", email);
       return res.render("login", {
         error: "Invalid email or password",
+        success: false,
         cart: req.session.cart || [],
         session: req.session,
       });
@@ -120,6 +121,7 @@ export const loginUser = async (req, res) => {
       console.log("❌ Password mismatch for email:", email);
       return res.render("login", {
         error: "Invalid email or password",
+        success: false,
         cart: req.session.cart || [],
         session: req.session,
       });
@@ -145,11 +147,13 @@ export const loginUser = async (req, res) => {
     console.log("✅ Logged in user:", req.session.userInfo);
     console.log("✅ Token stored in session:", token);
 
+    // ✅ You can also pass success = true when redirected or rendered:
     res.redirect("/my-account");
   } catch (error) {
     console.error("❌ Error during login:", error);
     res.render("login", {
       error: "Login failed",
+      success: false,
       cart: req.session.cart || [],
       session: req.session,
     });

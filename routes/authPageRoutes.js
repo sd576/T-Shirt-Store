@@ -12,9 +12,9 @@ const router = express.Router();
 router.get("/login", (req, res) => {
   res.render("login", {
     error: null,
-    success: null,
+    success: false,
     cart: req.session.cart || [],
-    session: req.session
+    session: req.session,
   });
 });
 
