@@ -23,6 +23,18 @@ const shippingAddressSeedData = [
     phone: "0987654321",
     email: "jane@example.com",
   },
+  {
+    order_id: null,
+    user_id: 3,
+    full_name: "Graham Hunt",
+    street: "789 Oak Ave",
+    address_line2: "Suite 300",
+    city: "Bristol",
+    postcode: "BS1 4DJ",
+    country: "UK",
+    phone: "07712345678",
+    email: "graham@example.com",
+  },
 ];
 
 export default shippingAddressSeedData;

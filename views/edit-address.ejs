@@ -16,6 +16,7 @@
     <main class="container my-5">
       <h1 class="mb-4">Edit Shipping Address</h1>
 
+      <!-- ✅ ONLY ONE FORM -->
       <form action="/my-account/edit-address" method="POST" class="row g-3">
         <!-- Full Name -->
         <div class="col-md-6">
@@ -25,7 +26,22 @@
             id="full_name"
             name="full_name"
             class="form-control"
-            value="<%= shippingAddress ? shippingAddress.full_name : '' %>"
+            placeholder="Full Name"
+            value="<%= user?.name || '' %>"
+            required
+          />
+        </div>
+
+        <!-- Email -->
+        <div class="col-md-6">
+          <label for="email" class="form-label">Email</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            class="form-control"
+            placeholder="Email"
+            value="<%= user?.email || '' %>"
             required
           />
         </div>
@@ -106,22 +122,9 @@
           />
         </div>
 
-        <!-- Email -->
-        <div class="col-md-6">
-          <label for="email" class="form-label">Email</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            class="form-control"
-            value="<%= shippingAddress ? shippingAddress.email : '' %>"
-            required
-          />
-        </div>
-
         <!-- Submit Button -->
         <div class="col-12">
-          <button type="submit" class="btn btn-primary">Save Address</button>
+          <button type="submit" class="btn btn-primary">Save</button>
         </div>
       </form>
     </main>

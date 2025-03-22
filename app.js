@@ -4,6 +4,7 @@ import bodyParser from "body-parser";
 import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
+import setLocals from "./middleware/setLocals.js";
 
 // Load environment variables
 dotenv.config();
@@ -39,23 +40,12 @@ app.use(
     secret: "secret-key", // Replace with process.env.SESSION_SECRET in production
     resave: false,
     saveUninitialized: true,
-  }),
+  })
 );
 
 // ✅ res.locals.user middleware (after session, before routes)
-app.use((req, res, next) => {
-  const userInfo = req.session.userInfo || null;
+app.use(setLocals);
 
-  res.locals.user = userInfo;
-
-  if (userInfo && userInfo.name) {
-    res.locals.firstName = userInfo.name.split(" ")[0];
-  } else {
-    res.locals.firstName = null;
-  }
-
-  next();
-});
 
 // Static files (CSS, JS, Images)
 app.use(express.static(path.join(__dirname, "public")));

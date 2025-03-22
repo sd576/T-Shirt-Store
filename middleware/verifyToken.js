@@ -7,21 +7,30 @@ const verifyToken = (req, res, next) => {
   console.log("✅ verifyToken middleware hit");
 
   const authHeader = req.headers["authorization"];
+
   if (!authHeader) {
     console.log("❌ No Authorization header provided");
-    return res.status(401).json({ message: "No token provided" });
+    return res.status(401).json({ success: false, error: "No token provided" });
   }
 
-  const token = authHeader.split(" ")[1];
-  if (!token) {
-    console.log("❌ Token missing after split");
-    return res.status(401).json({ message: "Token missing" });
+  const tokenParts = authHeader.split(" ");
+
+  if (tokenParts[0] !== "Bearer" || !tokenParts[1]) {
+    console.log("❌ Invalid Authorization header format");
+    return res.status(401).json({ success: false, error: "Invalid Authorization header format" });
   }
+
+  const token = tokenParts[1];
 
   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
     if (err) {
-      console.log("❌ Invalid token");
-      return res.status(403).json({ message: "Invalid token" });
+      console.log("❌ Token verification failed", err.message);
+
+      if (err.name === "TokenExpiredError") {
+        return res.status(401).json({ success: false, error: "Token expired" });
+      }
+
+      return res.status(403).json({ success: false, error: "Invalid token" });
     }
 
     console.log("✅ Token verified", decoded);

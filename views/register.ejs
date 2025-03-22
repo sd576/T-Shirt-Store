@@ -22,10 +22,13 @@
     <!-- Register Form Content -->
     <main class="container my-5">
       <h2 class="mb-4">Create a New Account</h2>
+
       <div class="alert alert-info w-50 mx-auto">
-        <strong>Important:</strong> Please make a note of your email and
-        password. You’ll need them to log in again!
+        <strong>Important:</strong> Please make a note of your email and password. You’ll need them to log in again!
       </div>
+
+      <!-- Bootstrap Alert Messages Will Appear Here -->
+      <div id="alert-container" class="w-50 mx-auto my-3"></div>
 
       <% if (error) { %>
       <div class="alert alert-danger w-50 mx-auto"><%= error %></div>
@@ -88,7 +91,6 @@
     <%- include('partials/footer') %>
 
     <script>
-      // Convert name input to Title Case on blur
       function toTitleCase(str) {
         return str
           .toLowerCase()
@@ -100,13 +102,12 @@
       document.addEventListener("DOMContentLoaded", () => {
         const form = document.getElementById("registerForm");
         const nameField = document.getElementById("name");
+        const alertContainer = document.getElementById("alert-container");
 
-        // Name formatting on blur
         nameField.addEventListener("blur", () => {
           nameField.value = toTitleCase(nameField.value.trim());
         });
 
-        // Handle form submission with fetch
         form.addEventListener("submit", async (e) => {
           e.preventDefault();
 
@@ -126,21 +127,36 @@
             const data = await res.json();
 
             if (res.ok) {
-              alert("✅ Registration successful!");
+              alertContainer.innerHTML = `
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                  ✅ Registration successful! Redirecting to login...
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+              `;
 
-              // Optional: redirect
-              window.location.href = "/login";
+              setTimeout(() => {
+                window.location.href = "/login";
+              }, 2000);
             } else {
-              alert(`❌ ${data.message}`);
+              alertContainer.innerHTML = `
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                  ❌ ${data.message}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+              `;
             }
           } catch (error) {
-            alert("❌ Registration failed. Please try again.");
             console.error("Fetch error:", error);
+            alertContainer.innerHTML = `
+              <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                ❌ Registration failed. Please try again later.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            `;
           }
         });
       });
 
-      // Reset the form fields
       function resetForm() {
         document.getElementById("registerForm").reset();
       }

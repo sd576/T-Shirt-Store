@@ -40,7 +40,7 @@
         <nav>
           <a class="text-white me-3" href="/cart">Cart</a>
           <% if (!guestCheckout) { %>
-            <a class="text-white" href="/account/orders">My Orders</a>
+          <a class="text-white" href="/my-account">My Account</a>
           <% } %>
         </nav>
       </div>
@@ -48,83 +48,89 @@
 
     <!-- Confirmation Content -->
     <main class="container text-center confirmation-container">
-      <h1 class="display-4 mb-4">Thank You for Your Order!</h1>
+      <h1 class="display-4 mb-4 text-success">Thank You for Your Order!</h1>
 
       <% if (order && shippingAddress && orderItems.length > 0) { %>
 
-        <p class="lead mb-3">
-          <% if (guestCheckout) { %>
-            You're all set! We’ll email your order confirmation shortly.
-          <% } else { %>
-            Your awesome T-Shirts will be on their way soon!
-          <% } %>
-        </p>
+      <!-- Success Message -->
+      <p class="lead mb-3">
+        <% if (guestCheckout) { %> You're all set! We’ll email your order
+        confirmation shortly. <% } else { %> Your awesome T-Shirts will be on
+        their way soon, <strong><%= order.user_name || user.name %></strong>! <%
+        } %>
+      </p>
 
-        <!-- Order Info -->
-        <p class="order-id">
-          Your Order Number: <%= order.order_number %>
-        </p>
-        <p><strong>Status:</strong> <%= order.status %></p>
-        <p><strong>Order Date:</strong> <%= order.order_date %></p>
-        <p><strong>Total Price:</strong> £<%= order.total_amount.toFixed(2) %></p>
+      <hr />
 
-        <!-- Ordered Items Table -->
-        <h3 class="mt-5">Order Summary</h3>
-        <table class="table table-striped mt-4">
-          <thead>
-            <tr>
-              <th>Image</th>
-              <th>Product</th>
-              <th>Size</th>
-              <th>Quantity</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% orderItems.forEach(item => { %>
-              <tr>
-                <td>
-                  <img src="<%= item.image %>" alt="<%= item.name %>" style="width: 80px;" />
-                </td>
-                <td><%= item.name %></td>
-                <td><%= item.size %></td>
-                <td><%= item.quantity %></td>
-                <td>£<%= (item.price * item.quantity).toFixed(2) %></td>
-              </tr>
-            <% }); %>
-          </tbody>
-        </table>
+      <!-- Order Summary -->
+      <h3 class="mt-4">Order Summary</h3>
+      <p><strong>Order Number:</strong> <%= order.order_number %></p>
+      <p><strong>Status:</strong> <%= order.status %></p>
+      <p>
+        <strong>Order Date:</strong> <%= new
+        Date(order.order_date).toLocaleDateString() %>
+      </p>
+      <p><strong>Total Paid:</strong> £<%= order.total_amount.toFixed(2) %></p>
 
-        <!-- Shipping Info -->
-        <h3 class="mt-5">Shipping Address</h3>
-        <p><strong>Name:</strong> <%= shippingAddress.full_name %></p>
-        <p><strong>Street:</strong> <%= shippingAddress.street %></p>
-        <% if (shippingAddress.address_line2) { %>
-          <p><strong>Address Line 2:</strong> <%= shippingAddress.address_line2 %></p>
+      <!-- Shipping Address -->
+      <h4 class="mt-4">Shipping Address</h4>
+      <p>
+        <%= shippingAddress.full_name %><br />
+        <%= shippingAddress.street %><br />
+        <% if (shippingAddress.address_line2) { %> <%=
+        shippingAddress.address_line2 %><br />
+        <% } %> <%= shippingAddress.city %>, <%= shippingAddress.postcode %><br />
+        <%= shippingAddress.country %><br />
+        <% if (shippingAddress.phone) { %> Phone: <%= shippingAddress.phone
+        %><br />
+        <% } %> <% if (shippingAddress.email) { %> Email: <%=
+        shippingAddress.email %><br />
         <% } %>
-        <p><strong>City:</strong> <%= shippingAddress.city %></p>
-        <p><strong>Postcode:</strong> <%= shippingAddress.postcode %></p>
-        <p><strong>Country:</strong> <%= shippingAddress.country %></p>
-        <p><strong>Email:</strong> <%= shippingAddress.email %></p>
-        <% if (shippingAddress.phone) { %>
-          <p><strong>Phone:</strong> <%= shippingAddress.phone %></p>
-        <% } %>
+      </p>
 
-        <!-- Continue Shopping -->
-        <a href="/" class="btn btn-primary mt-4">Continue Shopping</a>
+      <!-- Items Purchased Table -->
+      <h4 class="mt-4">Items Purchased</h4>
+      <table class="table table-striped mt-3">
+        <thead>
+          <tr>
+            <th>Image</th>
+            <th>Product</th>
+            <th>Size</th>
+            <th>Quantity</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% orderItems.forEach(item => { %>
+          <tr>
+            <td>
+              <img
+                src="<%= item.image %>"
+                alt="<%= item.name %>"
+                style="width: 80px"
+              />
+            </td>
+            <td><%= item.name %></td>
+            <td><%= item.size %></td>
+            <td><%= item.quantity %></td>
+            <td>£<%= (item.price * item.quantity).toFixed(2) %></td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+
+      <!-- Back to Home -->
+      <a href="/" class="btn btn-primary mt-4">Continue Shopping</a>
 
       <% } else { %>
 
-        <!-- If no order data -->
-        <p class="text-danger">
-          ❗ We couldn't find your order details.
-          <% if (!guestCheckout) { %>
-            Please check your <a href="/account/orders">order history</a>.
-          <% } else { %>
-            Contact our support team if you have questions.
-          <% } %>
-        </p>
-        <a href="/" class="btn btn-primary mt-4">Back to Home</a>
+      <!-- Error Message if no order found -->
+      <p class="text-danger mt-5">
+        ❗ We couldn't retrieve your order details. <% if (!guestCheckout) { %>
+        Please check your <a href="/my-account">order history</a>. <% } else {
+        %> Contact our support team if you have any questions. <% } %>
+      </p>
+      <a href="/" class="btn btn-primary mt-4">Back to Home</a>
 
       <% } %>
     </main>

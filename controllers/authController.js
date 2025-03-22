@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import dbPromise from "../database/db.js"; // <-- you are importing the promise here
+import dbPromise from "../database/db.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -22,7 +22,7 @@ export const registerUser = async (req, res) => {
 
     const result = await db.run(
       "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
-      [name, email, hashedPassword],
+      [name, email, hashedPassword]
     );
 
     const token = jwt.sign(
@@ -32,7 +32,7 @@ export const registerUser = async (req, res) => {
         name: name,
       },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "1h" },
+      { expiresIn: process.env.JWT_EXPIRES_IN || "1h" }
     );
 
     res.status(201).json({
@@ -69,7 +69,7 @@ export const apiRegisterUser = async (req, res) => {
 
     const result = await db.run(
       "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
-      [name, email, hashedPassword],
+      [name, email, hashedPassword]
     );
 
     const token = jwt.sign(
@@ -79,7 +79,7 @@ export const apiRegisterUser = async (req, res) => {
         name: name,
       },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "1h" },
+      { expiresIn: process.env.JWT_EXPIRES_IN || "1h" }
     );
 
     res.status(201).json({
@@ -105,29 +105,27 @@ export const loginUser = async (req, res) => {
 
     const user = await db.get("SELECT * FROM users WHERE email = ?", [email]);
 
-    // 🚫 No user found
     if (!user) {
       console.log("❌ No user found for email:", email);
       return res.render("login", {
         error: "Invalid email or password",
         cart: req.session.cart || [],
-        session: req.session, // ✅
+        session: req.session,
       });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
 
-    // 🚫 Password doesn't match
     if (!isMatch) {
       console.log("❌ Password mismatch for email:", email);
       return res.render("login", {
         error: "Invalid email or password",
         cart: req.session.cart || [],
-        session: req.session, // ✅
+        session: req.session,
       });
     }
 
-    // ✅ Success: Set session info!
+    // ✅ Set session info
     req.session.userInfo = {
       id: user.id,
       name: user.name,
@@ -135,16 +133,25 @@ export const loginUser = async (req, res) => {
       shippingAddress: user.shipping_address || "",
     };
 
-    console.log("✅ Logged in user:", req.session.userInfo);
+    // ✅ Generate token and save in session
+    const token = jwt.sign(
+      { id: user.id, email: user.email, name: user.name },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || "1h" }
+    );
 
-    // 🚀 Redirect to account page
+    req.session.token = token;
+
+    console.log("✅ Logged in user:", req.session.userInfo);
+    console.log("✅ Token stored in session:", token);
+
     res.redirect("/my-account");
   } catch (error) {
     console.error("❌ Error during login:", error);
     res.render("login", {
       error: "Login failed",
       cart: req.session.cart || [],
-      session: req.session, // ✅
+      session: req.session,
     });
   }
 };
@@ -175,7 +182,7 @@ export const apiLoginUser = async (req, res) => {
     const token = jwt.sign(
       { id: user.id, email: user.email },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "1h" },
+      { expiresIn: process.env.JWT_EXPIRES_IN || "1h" }
     );
 
     console.log("✅ API logged in user:", user.email);

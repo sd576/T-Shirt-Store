@@ -1,183 +1,148 @@
 import express from "express";
-import fetch from "node-fetch";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
-
+import { registerUser, loginUser } from "../controllers/authController.js";
+import ensureAuthenticated from "../middleware/ensureAuthenticated.js";
 import dbPromise from "../database/db.js";
 
 const router = express.Router();
 
-const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:3000";
-
-// ==================== REGISTER ROUTES ==================== //
-
-// GET Register Page
-router.get("/register", (req, res) => {
-  res.render("register", {
-    error: null,
-    success: null,
-    cart: req.session.cart || [],
-    session: req.session,
-  });
-});
-
-// POST Register Form Submission
-router.post("/register", async (req, res) => {
-  const { name, email, password } = req.body;
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return res.render("register", {
-        error: data.message || "Registration failed.",
-        success: null,
-        cart: req.session.cart || [],
-        session: req.session,
-      });
-    }
-
-    // Save token in session after successful registration
-    req.session.token = data.token;
-
-    // ✅ Set session.userInfo as well!
-    const decodedUser = jwt.decode(data.token);
-    req.session.userInfo = decodedUser;
-
-    res.redirect("/my-account");
-  } catch (error) {
-    console.error("Error during registration:", error);
-    res.render("register", {
-      error: "Server error. Please try again later.",
-      cart: req.session.cart || [],
-      session: req.session,
-    });
-  }
-});
-
 // ==================== LOGIN ROUTES ==================== //
 
-// GET Login Page
+// GET: Login page
 router.get("/login", (req, res) => {
   res.render("login", {
     error: null,
     success: null,
     cart: req.session.cart || [],
+    session: req.session
+  });
+});
+
+// POST: Login form submit
+router.post("/login", loginUser);
+
+// ==================== REGISTER ROUTES ==================== //
+
+// GET: Register page
+router.get("/register", (req, res) => {
+  res.render("register", {
+    error: null,
+    cart: req.session.cart || [],
     session: req.session,
   });
 });
 
-// POST Login Form Submission
-router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
+// POST: Register form submit
+router.post("/register", registerUser);
 
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+// ==================== MY ACCOUNT ROUTES ==================== //
 
-    const data = await response.json();
+// GET: My Account page
+router.get("/my-account", ensureAuthenticated, async (req, res) => {
+  const decodedUser = jwt.decode(req.session.token);
 
-    if (!response.ok) {
-      return res.render("login", {
-        error: data.message || "Login failed. Please check your credentials.",
-        success: null,
-        cart: req.session.cart || [],
-        session: req.session,
-      });
-    }
-
-    // Save token in session after successful login
-    req.session.token = data.token;
-
-    // ✅ Set session.userInfo here!
-    req.session.userInfo = data.user; // Coming back from /api/auth/login
-
-    res.redirect("/my-account");
-  } catch (error) {
-    console.error("Error during login:", error);
-    res.render("login", {
-      error: "Server error. Please try again later.",
-      success: null,
-      cart: req.session.cart || [],
-      session: req.session,
-    });
+  if (!decodedUser) {
+    console.log("❌ Invalid token. Redirecting to login.");
+    return res.redirect("/login");
   }
+
+  const db = await dbPromise;
+
+  const orders = await db.all(
+    "SELECT * FROM orders WHERE user_id = ?",
+    decodedUser.id
+  );
+
+  const shippingAddress = await db.get(
+    "SELECT * FROM shipping_addresses WHERE user_id = ?",
+    decodedUser.id
+  );
+
+  res.render("my-account", {
+    user: decodedUser,
+    orders,
+    shippingAddress,
+    cart: req.session.cart || [],
+    session: req.session,
+  });
 });
 
-// ==================== LOGOUT ==================== //
+// ==================== EDIT ORDER ==================== //
 
+// GET: Edit Order page
+router.get(
+  "/my-account/orders/:id/edit",
+  ensureAuthenticated,
+  async (req, res) => {
+    const decodedUser = jwt.decode(req.session.token);
+
+    if (!decodedUser) {
+      console.log("❌ Invalid token. Redirecting to login.");
+      return res.redirect("/login");
+    }
+
+    const db = await dbPromise;
+    const orderId = req.params.id;
+
+    try {
+      const order = await db.get(
+        "SELECT * FROM orders WHERE id = ? AND user_id = ?",
+        [orderId, decodedUser.id]
+      );
+
+      if (!order) {
+        console.log("❌ Order not found or unauthorized access.");
+        return res.redirect("/my-account");
+      }
+
+      res.render("edit-order", {
+        order,
+        session: req.session,
+        cart: req.session.cart || [],
+      });
+    } catch (error) {
+      console.error("❌ Error loading edit order page:", error);
+      res.redirect("/my-account");
+    }
+  }
+);
+
+// ==================== LOGOUT ROUTE ==================== //
+
+// GET: Logout
 router.get("/logout", (req, res) => {
   req.session.destroy((err) => {
     if (err) {
-      console.error("Logout error:", err);
+      console.error("❌ Logout error:", err);
+      return res.redirect("/my-account");
     }
+    console.log("✅ User successfully logged out");
     res.redirect("/login");
   });
 });
 
-// ==================== MY ACCOUNT ==================== //
+// ==================== FORGOT PASSWORD ROUTES ==================== //
 
-router.get("/my-account", async (req, res) => {
-  console.log("Session token at /my-account:", req.session.token);
-
-  if (!req.session.token) {
-    return res.redirect("/login");
-  }
-
-  try {
-    const decodedUser = jwt.decode(req.session.token);
-    const userId = decodedUser.id;
-
-    const db = await dbPromise;
-
-    // ✅ Get this user's orders
-    const orders = await db.all(
-      "SELECT * FROM orders WHERE user_id = ?",
-      userId
-    );
-
-    // ✅ Get this user's shipping address
-    const shippingAddress = await db.get(
-      "SELECT * FROM shipping_addresses WHERE user_id = ?",
-      userId
-    );
-
-    // ✅ Set session.userInfo so it syncs across pages
-    req.session.userInfo = decodedUser;
-
-    res.render("my-account", {
-      user: decodedUser,
-      orders,
-      shippingAddress,
-      cart: req.session.cart || [],
-      session: req.session,
-    });
-  } catch (error) {
-    console.error("Error fetching my account info:", error);
-    res.redirect("/login");
-  }
+// GET: Forgot Password page
+router.get("/forgot-password", (req, res) => {
+  res.render("forgot-password", {
+    error: null,
+    success: null,
+    session: req.session,
+    cart: req.session.cart || [],
+  });
 });
 
-// ==================== FORGOT PASSWORD (Reset Password) ==================== //
-
+// POST: Forgot Password form submit
 router.post("/forgot-password", async (req, res) => {
   const { email, newPassword } = req.body;
 
   if (!email || !newPassword) {
-    return res.render("login", {
-      error: "Both email and new password are required.",
+    return res.render("forgot-password", {
+      error: "Email and new password are required.",
       success: null,
-      cart: req.session.cart || [],
       session: req.session,
+      cart: req.session.cart || [],
     });
   }
 
@@ -189,11 +154,11 @@ router.post("/forgot-password", async (req, res) => {
     ]);
 
     if (!existingUser) {
-      return res.render("login", {
-        error: "User not found.",
+      return res.render("forgot-password", {
+        error: "No user found with that email address.",
         success: null,
-        cart: req.session.cart || [],
         session: req.session,
+        cart: req.session.cart || [],
       });
     }
 
@@ -208,50 +173,182 @@ router.post("/forgot-password", async (req, res) => {
       success:
         "Password reset successful! You can now login with your new password.",
       error: null,
-      cart: req.session.cart || [],
       session: req.session,
+      cart: req.session.cart || [],
     });
   } catch (error) {
     console.error("Error resetting password:", error);
 
-    res.render("login", {
+    res.render("forgot-password", {
       error: "Server error. Please try again later.",
       success: null,
-      cart: req.session.cart || [],
       session: req.session,
+      cart: req.session.cart || [],
     });
   }
 });
 
-// ==================== EDIT SHIPPING ADDRESS FORM ==================== //
+// ==================== EDIT SHIPPING ADDRESS ROUTES ==================== //
 
-router.get("/my-account/edit-address", async (req, res) => {
-  if (!req.session.token) {
-    return res.redirect("/login");
+// GET: Edit Shipping Address form
+router.get(
+  "/my-account/edit-address",
+  ensureAuthenticated,
+  async (req, res) => {
+    try {
+      const decodedUser = jwt.decode(req.session.token);
+      const userId = decodedUser.id;
+
+      const db = await dbPromise;
+
+      const userDetails = await db.get(
+        "SELECT name, email FROM users WHERE id = ?",
+        userId
+      );
+
+      const shippingAddress = await db.get(
+        "SELECT * FROM shipping_addresses WHERE user_id = ?",
+        userId
+      );
+
+      res.render("edit-address", {
+        user: userDetails,
+        shippingAddress,
+        session: req.session,
+        cart: req.session.cart || [],
+      });
+    } catch (error) {
+      console.error("❌ Error loading edit address page:", error);
+      res.redirect("/my-account");
+    }
   }
+);
 
-  try {
-    const decodedUser = jwt.decode(req.session.token);
-    const userId = decodedUser.id;
+// ==================== SAVE SHIPPING ADDRESS ROUTE ==================== //
 
-    const db = await dbPromise;
+// POST: Save Shipping Address form
+router.post(
+  "/my-account/edit-address",
+  ensureAuthenticated,
+  async (req, res) => {
+    try {
+      const decodedUser = jwt.decode(req.session.token);
+      const userId = decodedUser.id;
 
-    // Check if they already have an address (for pre-filling form)
-    const shippingAddress = await db.get(
-      "SELECT * FROM shipping_addresses WHERE user_id = ?",
-      userId
-    );
+      const {
+        full_name,
+        street,
+        address_line2 = null,
+        city,
+        postcode,
+        country,
+        phone = null,
+        email,
+      } = req.body;
 
-    res.render("edit-address", {
-      user: decodedUser,
-      shippingAddress,
-      cart: req.session.cart || [],
-      session: req.session,
-    });
-  } catch (error) {
-    console.error("Error loading edit address page:", error);
-    res.redirect("/my-account");
+      const db = await dbPromise;
+
+      const existingAddress = await db.get(
+        "SELECT * FROM shipping_addresses WHERE user_id = ?",
+        userId
+      );
+
+      if (existingAddress) {
+        await db.run(
+          `
+        UPDATE shipping_addresses
+        SET full_name = ?, street = ?, address_line2 = ?, city = ?, postcode = ?, country = ?, phone = ?, email = ?
+        WHERE user_id = ?
+        `,
+          [
+            full_name,
+            street,
+            address_line2,
+            city,
+            postcode,
+            country,
+            phone,
+            email,
+            userId,
+          ]
+        );
+        console.log(`✅ Updated shipping address for user ${userId}`);
+      } else {
+        await db.run(
+          `
+        INSERT INTO shipping_addresses 
+        (user_id, full_name, street, address_line2, city, postcode, country, phone, email)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `,
+          [
+            userId,
+            full_name,
+            street,
+            address_line2,
+            city,
+            postcode,
+            country,
+            phone,
+            email,
+          ]
+        );
+        console.log(`✅ Created new shipping address for user ${userId}`);
+      }
+
+      res.redirect("/my-account");
+    } catch (error) {
+      console.error("❌ Error saving shipping address:", error);
+      res.render("edit-address", {
+        error: "There was an issue saving your address. Please try again.",
+        session: req.session,
+        cart: req.session.cart || [],
+      });
+    }
   }
-});
+);
+
+// ==================== DELETE ORDER ROUTE ==================== //
+
+// POST: Delete an order by ID
+router.post(
+  "/my-account/orders/:id/delete",
+  ensureAuthenticated,
+  async (req, res) => {
+    try {
+      const decodedUser = jwt.decode(req.session.token);
+      const userId = decodedUser.id;
+      const orderId = req.params.id;
+
+      const db = await dbPromise;
+
+      const order = await db.get(
+        "SELECT * FROM orders WHERE id = ? AND user_id = ?",
+        [orderId, userId]
+      );
+
+      if (!order) {
+        console.log("❌ Order not found or unauthorized delete attempt.");
+        return res.redirect("/my-account");
+      }
+
+      await db.run("DELETE FROM orders WHERE id = ? AND user_id = ?", [
+        orderId,
+        userId,
+      ]);
+
+      console.log(
+        `✅ Successfully deleted order ${orderId} for user ${userId}`
+      );
+      res.redirect("/my-account");
+    } catch (error) {
+      console.error("❌ Error deleting order:", error);
+      res.render("my-account", {
+        error: "There was an error deleting the order. Please try again.",
+        session: req.session,
+        cart: req.session.cart || [],
+      });
+    }
+  }
+);
 
 export default router;

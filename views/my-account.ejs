@@ -21,77 +21,98 @@
 
     <!-- My Account Content -->
     <main class="container my-5">
-      <h1 class="my-4">My Account</h1>
+      <h1 class="mb-4">My Account</h1>
 
-      <!-- User Details -->
-      <section class="mb-4">
+      <!-- USER DETAILS -->
+      <section class="mb-5">
         <h2>User Details</h2>
-
-        <div class="card p-3">
+        <div class="card p-3 mb-4">
           <p><strong>Full Name:</strong> <%= user.name %></p>
           <p><strong>Email:</strong> <%= user.email %></p>
+
+          <!-- Optional Edit Button -->
+          <!-- <a href="/my-account/edit-profile" class="btn btn-primary mt-3">Edit Profile</a> -->
         </div>
       </section>
 
-      <!-- Orders Section -->
-      <% if (orders.length === 0) { %>
-      <p>You haven't placed any orders yet.</p>
-      <% } else { %>
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th>Order Number</th>
-            <th>Status</th>
-            <th>Total (£)</th>
-            <th>Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% orders.forEach(order => { %>
-          <tr>
-            <td><%= order.order_number %></td>
-            <td><%= order.status %></td>
-            <td><%= order.total_amount %></td>
-            <td><%= order.order_date %></td>
-          </tr>
-          <% }) %>
-        </tbody>
-      </table>
-      <% } %>
+      <!-- ORDERS -->
+      <section class="mb-5">
+        <h2>Your Orders</h2>
+        <% if (orders && orders.length > 0) { %>
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Order Number</th>
+              <th>Status</th>
+              <th>Total (£)</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% orders.forEach(order => { %>
+            <tr>
+              <td><%= order.order_number %></td>
+              <td><%= order.status %></td>
+              <td><%= order.total_amount.toFixed(2) %></td>
+              <td><%= new Date(order.order_date).toLocaleDateString() %></td>
+              <td>
+                <!-- Comment out edit for now -->
+                <!-- <a href="/my-account/orders/<%= order.id %>/edit" class="btn btn-sm btn-warning">Edit</a> -->
 
-      <!-- Shipping Address Section -->
-      <section class="mt-5">
-        <h2>Shipping Address</h2>
-
-        <% if (!shippingAddress) { %>
-        <p>You haven't added a shipping address yet.</p>
-        <a href="/my-account/edit-address" class="btn btn-primary mt-3"
-          >Add Address</a
-        >
+                <form
+                  action="/my-account/orders/<%= order.id %>/delete"
+                  method="POST"
+                  class="d-inline"
+                  onsubmit="return confirm('Are you sure you want to delete this order?');"
+                >
+                  <button type="submit" class="btn btn-sm btn-danger">
+                    Delete
+                  </button>
+                </form>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
         <% } else { %>
-        <!-- Existing address display -->
+        <p>You haven't placed any orders yet.</p>
+        <a href="/" class="btn btn-primary mt-3">Shop Now</a>
+        <% } %>
+      </section>
+
+      <!-- SHIPPING ADDRESS -->
+      <section>
+        <h2>Shipping Address</h2>
+        <% if (shippingAddress) { %>
         <div class="card p-3 mb-4">
           <p><strong>Full Name:</strong> <%= shippingAddress.full_name %></p>
           <p><strong>Street:</strong> <%= shippingAddress.street %></p>
-
           <% if (shippingAddress.address_line2) { %>
           <p>
             <strong>Address Line 2:</strong> <%= shippingAddress.address_line2
             %>
           </p>
           <% } %>
-
           <p><strong>City:</strong> <%= shippingAddress.city %></p>
           <p><strong>Postcode:</strong> <%= shippingAddress.postcode %></p>
           <p><strong>Country:</strong> <%= shippingAddress.country %></p>
+          <% if (shippingAddress.phone) { %>
           <p><strong>Phone:</strong> <%= shippingAddress.phone %></p>
+          <% } %> <% if (shippingAddress.email) { %>
           <p><strong>Email:</strong> <%= shippingAddress.email %></p>
+          <% } %>
 
           <!-- Edit button -->
           <a href="/my-account/edit-address" class="btn btn-warning mt-3"
             >Edit Address</a
           >
         </div>
+        <% } else { %>
+        <p>You haven't added a shipping address yet.</p>
+        <a href="/my-account/edit-address" class="btn btn-primary mt-3"
+          >Add Address</a
+        >
         <% } %>
       </section>
     </main>

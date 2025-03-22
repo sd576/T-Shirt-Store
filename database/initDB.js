@@ -96,22 +96,22 @@ async function init() {
 
   // Shipping Addresses Table
   await db.exec(`
-    CREATE TABLE IF NOT EXISTS shipping_addresses (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      order_id INTEGER NOT NULL,
-      user_id INTEGER NOT NULL,
-      full_name TEXT NOT NULL,
-      street TEXT NOT NULL,
-      address_line2 TEXT,
-      city TEXT NOT NULL,
-      postcode TEXT NOT NULL,
-      country TEXT NOT NULL,
-      phone TEXT,
-      email TEXT,
-      FOREIGN KEY (order_id) REFERENCES orders (id)
-      FOREIGN KEY (user_id) REFERENCES users (id)
-    );
-  `);
+  CREATE TABLE IF NOT EXISTS shipping_addresses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    order_id INTEGER,
+    user_id INTEGER NOT NULL,
+    full_name TEXT NOT NULL,
+    street TEXT NOT NULL,
+    address_line2 TEXT,
+    city TEXT NOT NULL,
+    postcode TEXT NOT NULL,
+    country TEXT NOT NULL,
+    phone TEXT,
+    email TEXT,
+    FOREIGN KEY (order_id) REFERENCES orders (id),
+    FOREIGN KEY (user_id) REFERENCES users (id)
+  );
+`);
 
   console.log("✅ Tables created!");
 
@@ -123,7 +123,7 @@ async function init() {
     const result = await db.run(
       `INSERT INTO products (name, description, category, type, price, image)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [name, description, category, type, price, image],
+      [name, description, category, type, price, image]
     );
 
     const productId = result.lastID;
@@ -134,7 +134,7 @@ async function init() {
       await db.run(
         `INSERT INTO product_stock (product_id, size, quantity)
          VALUES (?, ?, ?)`,
-        [productId, size, quantity],
+        [productId, size, quantity]
       );
     }
   }
@@ -145,7 +145,7 @@ async function init() {
     await db.run(
       `INSERT INTO users (id, name, email, password)
        VALUES (?, ?, ?, ?)`,
-      [user.id, user.name, user.email, user.password],
+      [user.id, user.name, user.email, user.password]
     );
   }
 
@@ -161,7 +161,7 @@ async function init() {
         order.status,
         order.order_number,
         order.order_date,
-      ],
+      ]
     );
   }
 
@@ -171,7 +171,7 @@ async function init() {
     await db.run(
       `INSERT INTO order_items (order_id, product_id, size, quantity, price)
        VALUES (?, ?, ?, ?, ?)`,
-      [item.order_id, item.product_id, item.size, item.quantity, item.price],
+      [item.order_id, item.product_id, item.size, item.quantity, item.price]
     );
   }
 
@@ -193,7 +193,7 @@ async function init() {
         address.country,
         address.phone || "",
         address.email || "",
-      ],
+      ]
     );
   }
 
