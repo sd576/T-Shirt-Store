@@ -49,7 +49,7 @@ router.get("/", async (req, res) => {
       session: req.session,
       user,
       cart: req.session.cart || [],
-      guestCheckout: false, // ✅ Remove the guest option if logged in
+      guestCheckout: false,
     });
   } catch (error) {
     console.error("❌ Error loading checkout page:", error);
@@ -85,6 +85,7 @@ router.post("/", (req, res) => {
  * POST /checkout/complete
  */
 router.post("/complete", async (req, res) => {
+  const { cardNumber, expiryDate, cvv } = req.body;
   const db = await dbPromise;
   const cart = req.session.cart || [];
 
@@ -93,12 +94,40 @@ router.post("/complete", async (req, res) => {
     return res.redirect("/cart");
   }
 
+  // ✅ Dummy payment validation
+  if (
+    !cardNumber ||
+    cardNumber.length !== 16 ||
+    !expiryDate ||
+    !cvv ||
+    cvv.length !== 3
+  ) {
+    console.log("❌ Invalid payment details");
+    return res.render("checkout-payment", {
+      session: req.session,
+      cart,
+      user: req.session.userInfo || req.session.guestInfo || { name: "Guest" },
+      error: "Please enter valid card details!",
+    });
+  }
+
+  console.log("✅ Dummy payment successful");
+
   const decodedUser = req.session.token ? jwt.decode(req.session.token) : null;
   const userSession = req.session.userInfo || req.session.guestInfo;
 
   if (!userSession || !userSession.name || !userSession.email) {
     console.log("❌ Missing user session data at complete checkout");
     return res.redirect("/checkout");
+  }
+
+  let userDetails = null;
+
+  if (decodedUser) {
+    userDetails = await db.get(
+      "SELECT name, email FROM users WHERE id = ?",
+      decodedUser.id
+    );
   }
 
   try {
@@ -116,7 +145,7 @@ router.post("/complete", async (req, res) => {
       [
         decodedUser ? decodedUser.id : null,
         cart.reduce((acc, item) => acc + item.price * item.quantity, 0),
-        "Processing",
+        "Processing", // or "Complete" if you're testing hardcoded
         orderNumber,
       ]
     );
@@ -136,7 +165,11 @@ router.post("/complete", async (req, res) => {
       }
     }
 
-    // ✅ Insert shipping address for the order
+    // ✅ Use proper full name!
+    const fullName = decodedUser
+      ? userDetails?.name || "Guest"
+      : userSession.name || "Guest";
+
     await db.run(
       `
         INSERT INTO shipping_addresses
@@ -146,7 +179,7 @@ router.post("/complete", async (req, res) => {
       [
         orderId,
         decodedUser ? decodedUser.id : null,
-        userSession.name,
+        fullName, // ✅ FIXED
         shippingAddress.street || "",
         shippingAddress.address_line2 || "",
         shippingAddress.city || "",
@@ -157,7 +190,7 @@ router.post("/complete", async (req, res) => {
       ]
     );
 
-    // ✅ Insert order items from the cart
+    // ✅ Insert order items from cart
     const insertOrderItem = await db.prepare(`
       INSERT INTO order_items
         (order_id, product_id, size, quantity, price)
@@ -205,14 +238,10 @@ router.post("/complete", async (req, res) => {
       });
     }
 
-    // ✅ Clear session after successful order
     req.session.cart = [];
 
     if (req.session.guestInfo) {
       req.session.guestInfo = null;
-    } else {
-      // ✅ Leave userInfo intact so logged-in users stay logged in
-      console.log("✅ Logged-in user session retained:", req.session.userInfo);
     }
 
     res.render("checkout-success", {
@@ -221,6 +250,7 @@ router.post("/complete", async (req, res) => {
       orderItems,
       shippingAddress: shippingAddressData,
       guestCheckout: !decodedUser,
+      userName: fullName, // ✅ PASS THE FIXED NAME TO THE EJS
     });
   } catch (error) {
     console.error("❌ Error completing checkout:", error);
@@ -264,25 +294,33 @@ router.get("/review", async (req, res) => {
   const decodedUser = req.session.token ? jwt.decode(req.session.token) : null;
 
   let shippingAddress = {};
+  let userName = "Guest";
+  let userEmail = "";
 
   if (decodedUser) {
+    const dbUser = await db.get(
+      "SELECT name, email FROM users WHERE id = ?",
+      decodedUser.id
+    );
+
     shippingAddress = await db.get(
       "SELECT * FROM shipping_addresses WHERE user_id = ? ORDER BY id DESC LIMIT 1",
       decodedUser.id
     );
+
+    userName = dbUser?.name || "Guest";
+    userEmail = dbUser?.email || "";
   } else {
     shippingAddress = req.session.guestInfo?.shippingAddress || {};
+    userName = req.session.guestInfo?.name || "Guest";
+    userEmail = req.session.guestInfo?.email || "";
   }
 
   res.render("checkout-review", {
     session: req.session,
     user: {
-      name: decodedUser
-        ? shippingAddress?.full_name
-        : req.session.guestInfo?.name,
-      email: decodedUser
-        ? shippingAddress?.email
-        : req.session.guestInfo?.email,
+      name: userName,
+      email: userEmail,
       street: shippingAddress?.street || "",
       address_line2: shippingAddress?.address_line2 || "",
       city: shippingAddress?.city || "",
@@ -292,6 +330,63 @@ router.get("/review", async (req, res) => {
     },
     cart,
   });
+});
+
+/**
+ * GET /checkout/payment
+ */
+router.get("/payment", (req, res) => {
+  const cart = req.session.cart || [];
+
+  if (!cart.length) {
+    return res.redirect("/cart");
+  }
+
+  const user = req.session.userInfo ||
+    req.session.guestInfo || { name: "Guest" };
+
+  res.render("checkout-payment", {
+    session: req.session,
+    cart,
+    user,
+    error: null,
+  });
+});
+
+/**
+ * POST /checkout/payment
+ */
+router.post("/payment", (req, res) => {
+  const { cardNumber, expiryDate, cvv } = req.body;
+  const cart = req.session.cart || [];
+
+  if (
+    !cardNumber ||
+    cardNumber.length !== 16 ||
+    !expiryDate ||
+    !cvv ||
+    cvv.length !== 3
+  ) {
+    console.log("❌ Invalid payment details");
+
+    return res.render("checkout-payment", {
+      session: req.session,
+      cart,
+      user: req.session.userInfo || req.session.guestInfo || { name: "Guest" },
+      error: "Please enter valid card details!",
+    });
+  }
+
+  console.log("✅ Dummy payment successful");
+
+  res.redirect("/checkout/complete");
+});
+
+/**
+ * GET /checkout/complete
+ */
+router.get("/complete", (req, res) => {
+  res.redirect("/my-account");
 });
 
 export default router;

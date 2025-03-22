@@ -54,10 +54,8 @@
 
       <!-- Success Message -->
       <p class="lead mb-3">
-        <% if (guestCheckout) { %> You're all set! We’ll email your order
-        confirmation shortly. <% } else { %> Your awesome T-Shirts will be on
-        their way soon, <strong><%= order.user_name || user.name %></strong>! <%
-        } %>
+        Your awesome T-Shirts will be on their way soon,
+        <strong><%= userName %></strong>!
       </p>
 
       <hr />
