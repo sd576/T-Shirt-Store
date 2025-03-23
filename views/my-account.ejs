@@ -87,16 +87,40 @@
         <% if (shippingAddress) { %>
         <div class="card p-3 mb-4">
           <p><strong>Full Name:</strong> <%= shippingAddress.full_name %></p>
-          <p><strong>Street:</strong> <%= shippingAddress.street %></p>
+
+          <!-- Street with Title Case -->
+          <p>
+            <strong>Street:</strong>
+            <%= shippingAddress.street.replace(/\b\w/g, l => l.toUpperCase()) %>
+          </p>
+
           <% if (shippingAddress.address_line2) { %>
           <p>
-            <strong>Address Line 2:</strong> <%= shippingAddress.address_line2
-            %>
+            <strong>Address Line 2:</strong>
+            <%= shippingAddress.address_line2.replace(/\b\w/g, l =>
+            l.toUpperCase()) %>
           </p>
           <% } %>
-          <p><strong>City:</strong> <%= shippingAddress.city %></p>
-          <p><strong>Postcode:</strong> <%= shippingAddress.postcode %></p>
-          <p><strong>Country:</strong> <%= shippingAddress.country %></p>
+
+          <!-- City with Title Case -->
+          <p>
+            <strong>City:</strong>
+            <%= shippingAddress.city.replace(/\b\w/g, l => l.toUpperCase()) %>
+          </p>
+
+          <!-- Postcode in ALL CAPS -->
+          <p>
+            <strong>Postcode:</strong>
+            <%= shippingAddress.postcode.toUpperCase() %>
+          </p>
+
+          <!-- Country with Title Case -->
+          <p>
+            <strong>Country:</strong>
+            <%= shippingAddress.country.replace(/\b\w/g, l => l.toUpperCase())
+            %>
+          </p>
+
           <% if (shippingAddress.phone) { %>
           <p><strong>Phone:</strong> <%= shippingAddress.phone %></p>
           <% } %> <% if (shippingAddress.email) { %>
@@ -108,6 +132,7 @@
             >Edit Address</a
           >
         </div>
+
         <% } else { %>
         <p>You haven't added a shipping address yet.</p>
         <a href="/my-account/edit-address" class="btn btn-primary mt-3"

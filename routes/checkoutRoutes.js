@@ -173,6 +173,7 @@ router.post("/complete", async (req, res) => {
     );
 
     const orderId = result.lastID;
+    req.session.lastOrderId = orderId;
 
     let shippingAddress = userSession.shippingAddress || {};
 
@@ -254,14 +255,7 @@ router.post("/complete", async (req, res) => {
       req.session.guestInfo = null;
     }
 
-    res.render("checkout-success", {
-      session: req.session,
-      order,
-      orderItems,
-      shippingAddress: shippingAddressData,
-      guestCheckout: !decodedUser,
-      userName: fullName,
-    });
+    res.redirect("/checkout/complete");
   } catch (error) {
     console.error("❌ Error completing checkout:", error);
     await db.run("ROLLBACK");
@@ -395,8 +389,39 @@ router.post("/payment", (req, res) => {
 /**
  * GET /checkout/complete
  */
-router.get("/complete", (req, res) => {
-  res.redirect("/my-account");
+router.get("/complete", async (req, res) => {
+  const db = await dbPromise;
+  const lastOrderId = req.session.lastOrderId;
+
+  if (!lastOrderId) {
+    console.log("❌ No lastOrderId found in session");
+    return res.redirect("/");
+  }
+
+  // ✅ Query the real order data
+  const order = await db.get("SELECT * FROM orders WHERE id = ?", lastOrderId);
+  const orderItems = await db.all(
+    "SELECT * FROM order_items WHERE order_id = ?",
+    lastOrderId
+  );
+  const shippingAddress = await db.get(
+    "SELECT * FROM shipping_addresses WHERE order_id = ?",
+    lastOrderId
+  );
+
+  // ✅ Clear lastOrderId after use
+  req.session.lastOrderId = null;
+
+  // ✅ Render the success page with real data
+  res.render("checkout-success", {
+    session: req.session,
+    order,
+    orderItems,
+    shippingAddress,
+    guestCheckout: !req.session.token,
+    userName:
+      req.session.userInfo?.name || req.session.guestInfo?.name || "Guest",
+  });
 });
 
 export default router;
