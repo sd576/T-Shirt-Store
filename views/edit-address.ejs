@@ -54,6 +54,7 @@
             id="street"
             name="street"
             class="form-control"
+            style="text-transform: capitalize"
             value="<%= shippingAddress ? shippingAddress.street : '' %>"
             required
           />
@@ -67,6 +68,7 @@
             id="address_line2"
             name="address_line2"
             class="form-control"
+            style="text-transform: capitalize;"
             value="<%= shippingAddress ? shippingAddress.address_line2 : '' %>"
           />
         </div>
@@ -79,6 +81,7 @@
             id="city"
             name="city"
             class="form-control"
+            style="text-transform: capitalize;"
             value="<%= shippingAddress ? shippingAddress.city : '' %>"
             required
           />
@@ -92,6 +95,7 @@
             id="postcode"
             name="postcode"
             class="form-control"
+            style="text-transform: uppercase;"
             value="<%= shippingAddress ? shippingAddress.postcode : '' %>"
             required
           />

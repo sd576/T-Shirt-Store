@@ -211,9 +211,11 @@ router.get(
         userId
       );
 
+      console.log("🚀 shippingAddress going to EJS:", shippingAddress || {});
+
       res.render("edit-address", {
         user: userDetails,
-        shippingAddress,
+        shippingAddress: shippingAddress || {},
         session: req.session,
         cart: req.session.cart || [],
       });
