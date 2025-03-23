@@ -1,5 +1,6 @@
 import express from "express";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt"; // Make sure bcrypt is imported here for forgot-password route
 import { registerUser, loginUser } from "../controllers/authController.js";
 import ensureAuthenticated from "../middleware/ensureAuthenticated.js";
 import dbPromise from "../database/db.js";
@@ -301,6 +302,15 @@ router.post(
     } catch (error) {
       console.error("❌ Error saving shipping address:", error);
       res.render("edit-address", {
+        user: { name: req.body.full_name, email: req.body.email },
+        shippingAddress: {
+          street: req.body.street,
+          address_line2: req.body.address_line2 || '',
+          city: req.body.city,
+          postcode: req.body.postcode,
+          country: req.body.country,
+          phone: req.body.phone || ''
+        },
         error: "There was an issue saving your address. Please try again.",
         session: req.session,
         cart: req.session.cart || [],

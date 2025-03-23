@@ -79,7 +79,7 @@ async function init() {
     await db.exec(`
       CREATE TABLE IF NOT EXISTS orders (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,  -- ✅ Nullable for guest orders
+        user_id INTEGER,
         total_amount REAL NOT NULL,
         status TEXT NOT NULL,
         order_number TEXT UNIQUE NOT NULL,
@@ -102,12 +102,12 @@ async function init() {
       );
     `);
 
-    // Shipping Addresses Table
+    // Shipping Addresses Table (✅ FIXED: Removed NOT NULL from order_id)
     await db.exec(`
       CREATE TABLE IF NOT EXISTS shipping_addresses (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        order_id INTEGER NOT NULL,
-        user_id INTEGER,  -- ✅ Nullable for guests
+        order_id INTEGER,
+        user_id INTEGER,
         full_name TEXT NOT NULL,
         street TEXT NOT NULL,
         address_line2 TEXT,
