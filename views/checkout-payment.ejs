@@ -9,6 +9,8 @@
     />
   </head>
   <body class="container mt-5">
+    <!-- Shared Header Include -->
+    <%- include('partials/header') %>
     <h2>Enter Your Payment Details</h2>
 
     <% if (error) { %>
@@ -62,5 +64,6 @@
     </form>
 
     <a href="/checkout/review" class="btn btn-secondary">Back to Review</a>
+    <%- include('partials/footer') %>
   </body>
 </html>

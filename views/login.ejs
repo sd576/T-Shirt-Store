@@ -106,7 +106,7 @@
       function resetForm() {
         document.getElementById("loginForm").reset();
       }
-    
+
       document
         .getElementById("forgot-password-link")
         .addEventListener("click", function (e) {
@@ -115,14 +115,13 @@
           form.style.display = form.style.display === "none" ? "block" : "none";
         });
     </script>
-    
+
     <% if (success) { %>
     <script>
-      document.addEventListener("DOMContentLoaded", function() {
-        document.getElementById('loginForm').reset();
+      document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("loginForm").reset();
       });
     </script>
-    <% } %>
-    
+    <% } %> <%- include('partials/footer') %>
   </body>
 </html>

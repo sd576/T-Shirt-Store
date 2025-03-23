@@ -167,7 +167,7 @@ router.post("/complete", async (req, res) => {
       [
         decodedUser ? decodedUser.id : null,
         cart.reduce((acc, item) => acc + item.price * item.quantity, 0),
-        "Processing", // or "Complete"
+        "Complete",
         orderNumber,
       ]
     );
