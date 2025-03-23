@@ -5,7 +5,7 @@ import dbPromise from "../database/db.js";
 const router = express.Router();
 
 /**
- * GET /checkout
+ * GET /checkout (main checkout form)
  */
 router.get("/", async (req, res) => {
   console.log("✅ Checkout route session:", req.session);
@@ -13,7 +13,7 @@ router.get("/", async (req, res) => {
   const token = req.session.token;
 
   if (!token) {
-    console.log("🟢 No token found. Showing options for guest or login.");
+    console.log("🟢 No token found. Showing guest or login option.");
     return res.render("checkout-choice", {
       session: req.session,
     });
@@ -58,25 +58,47 @@ router.get("/", async (req, res) => {
 });
 
 /**
- * POST /checkout
+ * POST /checkout (logged-in user)
  */
 router.post("/", (req, res) => {
-  const { name, email, shippingAddress, checkoutAsGuest } = req.body;
-
-  if (checkoutAsGuest === "on") {
-    req.session.guestInfo = {
-      name: name || "Guest",
-      email,
-      shippingAddress,
-    };
-    return res.redirect("/checkout/review");
-  }
+  const { name, email, phone, street, city, postcode, country } = req.body;
 
   req.session.userInfo = {
     name: name || "Guest",
     email,
-    shippingAddress,
+    phone,
+    shippingAddress: {
+      street,
+      city,
+      postcode,
+      country,
+    },
   };
+
+  console.log("✅ User info stored:", req.session.userInfo);
+
+  res.redirect("/checkout/review");
+});
+
+/**
+ * POST /checkout/guest (guest user)
+ */
+router.post("/guest", (req, res) => {
+  const { name, email, phone, street, city, postcode, country } = req.body;
+
+  req.session.guestInfo = {
+    name: name || "Guest",
+    email,
+    phone,
+    shippingAddress: {
+      street,
+      city,
+      postcode,
+      country,
+    },
+  };
+
+  console.log("✅ Guest info stored:", req.session.guestInfo);
 
   res.redirect("/checkout/review");
 });
@@ -145,7 +167,7 @@ router.post("/complete", async (req, res) => {
       [
         decodedUser ? decodedUser.id : null,
         cart.reduce((acc, item) => acc + item.price * item.quantity, 0),
-        "Processing", // or "Complete" if you're testing hardcoded
+        "Processing", // or "Complete"
         orderNumber,
       ]
     );
@@ -165,7 +187,7 @@ router.post("/complete", async (req, res) => {
       }
     }
 
-    // ✅ Use proper full name!
+    // ✅ Set fullName correctly
     const fullName = decodedUser
       ? userDetails?.name || "Guest"
       : userSession.name || "Guest";
@@ -179,7 +201,7 @@ router.post("/complete", async (req, res) => {
       [
         orderId,
         decodedUser ? decodedUser.id : null,
-        fullName, // ✅ FIXED
+        fullName,
         shippingAddress.street || "",
         shippingAddress.address_line2 || "",
         shippingAddress.city || "",
@@ -190,7 +212,6 @@ router.post("/complete", async (req, res) => {
       ]
     );
 
-    // ✅ Insert order items from cart
     const insertOrderItem = await db.prepare(`
       INSERT INTO order_items
         (order_id, product_id, size, quantity, price)
@@ -227,17 +248,6 @@ router.post("/complete", async (req, res) => {
       shippingAddressData,
     });
 
-    if (!order || !shippingAddressData) {
-      console.error(
-        "❌ Missing order or shipping address for checkout-success page."
-      );
-      return res.render("checkout-success", {
-        session: req.session,
-        error:
-          "We couldn't retrieve your order details. Please check your order history.",
-      });
-    }
-
     req.session.cart = [];
 
     if (req.session.guestInfo) {
@@ -250,7 +260,7 @@ router.post("/complete", async (req, res) => {
       orderItems,
       shippingAddress: shippingAddressData,
       guestCheckout: !decodedUser,
-      userName: fullName, // ✅ PASS THE FIXED NAME TO THE EJS
+      userName: fullName,
     });
   } catch (error) {
     console.error("❌ Error completing checkout:", error);

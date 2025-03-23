@@ -22,17 +22,26 @@
           <h3>Shipping Details</h3>
 
           <% if (typeof error !== 'undefined' && error) { %>
-            <div class="alert alert-danger"><%= error %></div>
+          <div class="alert alert-danger"><%= error %></div>
           <% } %>
 
-          <form action="/checkout" method="POST">
+          <!-- 
+            🔧 FORM ACTIONS
+            For guest checkout: /checkout/guest
+            For logged-in checkout: /checkout
+            Update this action dynamically in your routes/views as needed 
+          -->
+          <form
+            action="<%= guestCheckout ? '/checkout/guest' : '/checkout' %>"
+            method="POST"
+          >
             <!-- Full Name -->
             <div class="mb-3">
-              <label for="fullName" class="form-label">Full Name</label>
+              <label for="name" class="form-label">Full Name</label>
               <input
                 type="text"
-                name="fullName"
-                id="fullName"
+                name="name"
+                id="name"
                 class="form-control"
                 required
                 value="<%= user.name %>"
@@ -54,13 +63,15 @@
 
             <!-- Phone (optional) -->
             <div class="mb-3">
-              <label for="phone" class="form-label">Phone Number (optional)</label>
+              <label for="phone" class="form-label"
+                >Phone Number (optional)</label
+              >
               <input
                 type="tel"
                 name="phone"
                 id="phone"
                 class="form-control"
-                value="<%= user.phone %>"
+                value="<%= user.phone || '' %>"
               />
             </div>
 
@@ -116,21 +127,10 @@
               />
             </div>
 
-            <!-- Guest Checkout Checkbox -->
-            <div class="form-check mb-3">
-              <input
-                class="form-check-input"
-                type="checkbox"
-                name="checkoutAsGuest"
-                id="checkoutAsGuest"
-              />
-              <label class="form-check-label" for="checkoutAsGuest">
-                Checkout as Guest
-              </label>
-            </div>
-
             <!-- Submit -->
-            <button type="submit" class="btn btn-success w-100">Continue</button>
+            <button type="submit" class="btn btn-success w-100">
+              Continue
+            </button>
           </form>
         </div>
 
@@ -139,27 +139,25 @@
           <h3>Order Summary</h3>
 
           <% if (cart.length === 0) { %>
-            <div class="alert alert-info">Your cart is empty.</div>
+          <div class="alert alert-info">Your cart is empty.</div>
           <% } else { %>
-            <ul class="list-group mb-3">
-              <% let total = 0; %>
-              <% cart.forEach(item => { %>
-                <li class="list-group-item d-flex justify-content-between lh-sm">
-                  <div>
-                    <h6 class="my-0"><%= item.name %> (Size: <%= item.size %>)</h6>
-                    <small class="text-muted">Qty: <%= item.quantity %></small>
-                  </div>
-                  <span class="text-muted">
-                    £<%= (item.price * item.quantity).toFixed(2) %>
-                  </span>
-                </li>
-                <% total += item.price * item.quantity; %>
-              <% }); %>
-              <li class="list-group-item d-flex justify-content-between">
-                <span>Total</span>
-                <strong>£<%= total.toFixed(2) %></strong>
-              </li>
-            </ul>
+          <ul class="list-group mb-3">
+            <% let total = 0; %> <% cart.forEach(item => { %>
+            <li class="list-group-item d-flex justify-content-between lh-sm">
+              <div>
+                <h6 class="my-0"><%= item.name %> (Size: <%= item.size %>)</h6>
+                <small class="text-muted">Qty: <%= item.quantity %></small>
+              </div>
+              <span class="text-muted">
+                £<%= (item.price * item.quantity).toFixed(2) %>
+              </span>
+            </li>
+            <% total += item.price * item.quantity; %> <% }); %>
+            <li class="list-group-item d-flex justify-content-between">
+              <span>Total</span>
+              <strong>£<%= total.toFixed(2) %></strong>
+            </li>
+          </ul>
           <% } %>
         </div>
       </div>
@@ -180,24 +178,23 @@
       }
 
       document.addEventListener("DOMContentLoaded", () => {
-        const fieldsToTitleCase = [
-          "fullName",
-          "street",
-          "city",
-          "country",
-        ];
+        const fieldsToTitleCase = ["name", "street", "city", "country"];
 
         fieldsToTitleCase.forEach((fieldId) => {
           const field = document.getElementById(fieldId);
-          field.addEventListener("blur", () => {
-            field.value = toTitleCase(field.value.trim());
-          });
+          if (field) {
+            field.addEventListener("blur", () => {
+              field.value = toTitleCase(field.value.trim());
+            });
+          }
         });
 
         const postcodeField = document.getElementById("postcode");
-        postcodeField.addEventListener("blur", () => {
-          postcodeField.value = postcodeField.value.trim().toUpperCase();
-        });
+        if (postcodeField) {
+          postcodeField.addEventListener("blur", () => {
+            postcodeField.value = postcodeField.value.trim().toUpperCase();
+          });
+        }
       });
     </script>
   </body>
