@@ -116,20 +116,48 @@ router.post("/complete", async (req, res) => {
     return res.redirect("/cart");
   }
 
-  // ✅ Dummy payment validation
+  // ✅ Enhanced dummy payment validation
+  const expiryRegex = /^(0[1-9]|1[0-2])\/\d{2}$/;
+  let isFutureExpiry = false;
+
+  if (expiryDate && expiryRegex.test(expiryDate)) {
+    const [month, year] = expiryDate.split("/").map(Number);
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth() + 1;
+    const currentYear = currentDate.getFullYear() % 100; // e.g. 25 for 2025
+
+    isFutureExpiry =
+      year > currentYear || (year === currentYear && month >= currentMonth);
+  }
+
+  const strippedCardNumber = cardNumber ? cardNumber.replace(/\s/g, "") : "";
+  const isCardNumberValid = strippedCardNumber.length === 16;
+
+  const isCvvValid = cvv && cvv.length === 3 && !["000", "999"].includes(cvv);
+
   if (
-    !cardNumber ||
-    cardNumber.length !== 16 ||
+    !isCardNumberValid ||
     !expiryDate ||
-    !cvv ||
-    cvv.length !== 3
+    !expiryRegex.test(expiryDate) ||
+    !isFutureExpiry ||
+    !isCvvValid
   ) {
+    let errorMsg = "Please enter valid card details!";
+
+    if (!isCardNumberValid) {
+      errorMsg = "Card number must be exactly 16 digits.";
+    } else if (!expiryRegex.test(expiryDate) || !isFutureExpiry) {
+      errorMsg = "Expiry date must be in MM/YY format and in the future.";
+    } else if (!isCvvValid) {
+      errorMsg = "CVV must be 3 digits and cannot be 000 or 999.";
+    }
+
     console.log("❌ Invalid payment details");
     return res.render("checkout-payment", {
       session: req.session,
       cart,
       user: req.session.userInfo || req.session.guestInfo || { name: "Guest" },
-      error: "Please enter valid card details!",
+      error: errorMsg,
     });
   }
 
@@ -419,6 +447,46 @@ router.get("/complete", async (req, res) => {
     orderItems,
     shippingAddress,
     guestCheckout: !req.session.token,
+    userName:
+      req.session.userInfo?.name || req.session.guestInfo?.name || "Guest",
+  });
+});
+
+/**
+ * GET /checkout/success
+ * For direct order lookup from query params (e.g. from API tests)
+ */
+router.get("/success", async (req, res) => {
+  const db = await dbPromise;
+  const { orderId, guestCheckout } = req.query;
+
+  if (!orderId) {
+    console.log("❌ Missing orderId in query");
+    return res.redirect("/");
+  }
+
+  // Fetch order data
+  const order = await db.get("SELECT * FROM orders WHERE id = ?", orderId);
+  const orderItems = await db.all(
+    "SELECT * FROM order_items WHERE order_id = ?",
+    orderId
+  );
+  const shippingAddress = await db.get(
+    "SELECT * FROM shipping_addresses WHERE order_id = ?",
+    orderId
+  );
+
+  if (!order || !orderItems.length || !shippingAddress) {
+    console.log("❌ Order data not found for orderId:", orderId);
+    return res.status(404).render("404");
+  }
+
+  res.render("checkout-success", {
+    session: req.session,
+    order,
+    orderItems,
+    shippingAddress,
+    guestCheckout: guestCheckout === "1",
     userName:
       req.session.userInfo?.name || req.session.guestInfo?.name || "Guest",
   });

@@ -1,13 +1,23 @@
 import express from "express";
-import { placeOrder } from "../controllers/checkoutController.js";
+import {
+  handleGuestCheckout,
+  processMockPayment,
+  placeOrder,
+} from "../controllers/checkoutController.js";
 import verifyToken from "../middleware/verifyToken.js";
 
 const router = express.Router();
 
-// ✅ Guest checkout route (no token required)
-router.post("/guest", placeOrder);
+// ✅ Step 2: Save guest shipping info
+router.post("/guest", handleGuestCheckout);
 
-// ✅ Logged-in user checkout route (JWT protected)
+// ✅ Step 3: Mock payment
+router.post("/payment", processMockPayment);
+
+// ✅ Step 4: Place order (requires cart, guest, payment)
+router.post("/place-order", placeOrder);
+
+// ✅ Optional: Authenticated user checkout (if needed)
 router.post("/", verifyToken, placeOrder);
 
 export default router;

@@ -20,6 +20,8 @@ import authPageRoutes from "./routes/authPageRoutes.js";
 import apiAuthRoutes from "./routes/apiAuthRoutes.js"; // NEW: API Auth Routes (JWT)
 import orderRoutes from "./routes/orderRoutes.js"; // API Order Routes
 import apiRoutes from "./routes/apiRoutes.js"; // Other APIs
+import apiCartRoutes from "./routes/apiCartRoutes.js"; // ✅ For Playwright test seeding
+import apiCheckoutRoutes from "./routes/apiCheckoutRoutes.js";
 
 // ===== SETUP __dirname =====
 const __filename = fileURLToPath(import.meta.url);
@@ -46,7 +48,6 @@ app.use(
 // ✅ res.locals.user middleware (after session, before routes)
 app.use(setLocals);
 
-
 // Static files (CSS, JS, Images)
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -60,6 +61,8 @@ app.set("views", path.join(__dirname, "views"));
 app.use("/api/auth", apiAuthRoutes); // API Login/Logout (JWT)
 app.use("/api/orders", orderRoutes); // API Order routes (can be JWT protected later)
 app.use("/api", apiRoutes); // Other APIs
+app.use("/api/cart", apiCartRoutes); // ✅ Adds /api/cart/add for Playwright tests
+app.use("/api/checkout", apiCheckoutRoutes);
 
 // ✅ Web App Routes (EJS + sessions)
 app.use("/cart", cartRoutes); // Cart pages (add/view cart)
