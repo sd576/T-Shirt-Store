@@ -1,4 +1,3 @@
-import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import dbPromise from "../database/db.js";
 import dotenv from "dotenv";
@@ -18,12 +17,11 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const result = await db.run(
-      "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
-      [name, email, hashedPassword]
-    );
+    await db.run("INSERT INTO users (name, email, password) VALUES (?, ?, ?)", [
+      name,
+      email,
+      password,
+    ]);
 
     const token = jwt.sign(
       {
@@ -59,32 +57,13 @@ export const apiRegisterUser = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    console.log({
-      name,
-      email,
-      hashedPassword,
-    });
-
     const result = await db.run(
       "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
-      [name, email, hashedPassword]
-    );
-
-    const token = jwt.sign(
-      {
-        id: result.lastID,
-        email: email,
-        name: name,
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "1h" }
+      [name, email, password]
     );
 
     res.status(201).json({
-      message: "User registered successfully (API",
-      token: token,
+      message: "User registered successfully (API)",
       user: {
         id: result.lastID,
         name: name,
@@ -102,7 +81,6 @@ export const loginUser = async (req, res) => {
 
   try {
     const db = await dbPromise;
-
     const user = await db.get("SELECT * FROM users WHERE email = ?", [email]);
 
     if (!user) {
@@ -115,9 +93,7 @@ export const loginUser = async (req, res) => {
       });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
+    if (user.password !== password) {
       console.log("❌ Password mismatch for email:", email);
       return res.render("login", {
         error: "Invalid email or password",
@@ -127,7 +103,6 @@ export const loginUser = async (req, res) => {
       });
     }
 
-    // ✅ Set session info
     req.session.userInfo = {
       id: user.id,
       name: user.name,
@@ -135,19 +110,9 @@ export const loginUser = async (req, res) => {
       shippingAddress: user.shipping_address || "",
     };
 
-    // ✅ Generate token and save in session
-    const token = jwt.sign(
-      { id: user.id, email: user.email, name: user.name },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "1h" }
-    );
-
-    req.session.token = token;
+    req.session.token = "mock-token"; // You can skip this too
 
     console.log("✅ Logged in user:", req.session.userInfo);
-    console.log("✅ Token stored in session:", token);
-
-    // ✅ You can also pass success = true when redirected or rendered:
     res.redirect("/my-account");
   } catch (error) {
     console.error("❌ Error during login:", error);
@@ -165,36 +130,21 @@ export const apiLoginUser = async (req, res) => {
 
   try {
     const db = await dbPromise;
-
     const user = await db.get("SELECT * FROM users WHERE email = ?", [email]);
 
-    // 🚫 No user found
     if (!user) {
       console.log("❌ No user found for email (API):", email);
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    // 🚫 Password doesn't match
-    if (!isMatch) {
+    if (user.password !== password) {
       console.log("❌ Password mismatch for email (API):", email);
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    // ✅ Success: Create JWT token
-    const token = jwt.sign(
-      { id: user.id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "1h" }
-    );
-
     console.log("✅ API logged in user:", user.email);
-
-    // ✅ Return JSON with token and user info
     res.json({
       message: "Login successful",
-      token: token,
       user: {
         id: user.id,
         name: user.name,
