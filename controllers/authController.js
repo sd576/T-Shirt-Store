@@ -83,8 +83,7 @@ export const loginUser = async (req, res) => {
     const db = await dbPromise;
     const user = await db.get("SELECT * FROM users WHERE email = ?", [email]);
 
-    if (!user) {
-      console.log("❌ No user found for email:", email);
+    if (!user || user.password !== password) {
       return res.render("login", {
         error: "Invalid email or password",
         success: false,
@@ -93,16 +92,7 @@ export const loginUser = async (req, res) => {
       });
     }
 
-    if (user.password !== password) {
-      console.log("❌ Password mismatch for email:", email);
-      return res.render("login", {
-        error: "Invalid email or password",
-        success: false,
-        cart: req.session.cart || [],
-        session: req.session,
-      });
-    }
-
+    // ✅ Store user info for header rendering
     req.session.userInfo = {
       id: user.id,
       name: user.name,
@@ -110,7 +100,19 @@ export const loginUser = async (req, res) => {
       shippingAddress: user.shipping_address || "",
     };
 
-    req.session.token = "mock-token"; // You can skip this too
+    // ✅ Generate a real JWT
+    const token = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || "1h" }
+    );
+
+    // ✅ Save token in session
+    req.session.token = token;
 
     console.log("✅ Logged in user:", req.session.userInfo);
     res.redirect("/my-account");
@@ -173,7 +175,7 @@ export const updateUserAccount = async (req, res) => {
 
     // Build update fields dynamically
     const updates = [];
-    const values = []; // ✅ renamed consistently
+    const values = [];
 
     if (name) {
       updates.push("name = ?");
@@ -197,11 +199,11 @@ export const updateUserAccount = async (req, res) => {
         .json({ message: "No valid fields provided to update" });
     }
 
-    values.push(id); // ✅ now matches the array
+    values.push(id);
 
     // Perform the update
     const query = `UPDATE users SET ${updates.join(", ")} WHERE id = ?`;
-    await db.run(query, values); // ✅ using the correct array
+    await db.run(query, values);
 
     res.status(200).json({
       message: "User updated successfully",
@@ -217,9 +219,11 @@ export const updateUserAccount = async (req, res) => {
 export const logoutUser = (req, res) => {
   req.session.destroy((err) => {
     if (err) {
-      console.error("Logout error:", err);
+      console.error("❌ Logout error:", err);
       return res.redirect("/my-account");
     }
+
+    console.log("✅ User logged out, session destroyed.");
     res.redirect("/login");
   });
 };

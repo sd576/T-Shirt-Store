@@ -20,7 +20,13 @@ router.get("/", async (req, res) => {
   }
 
   try {
-    const decodedUser = jwt.decode(token);
+    const decodedUser = jwt.decode(token) || {};
+
+    if (!decodedUser.id) {
+      console.log("❌ Invalid or missing token. Cannot fetch user details.");
+      return res.redirect("/login");
+    }
+
     const db = await dbPromise;
 
     const userDetails = await db.get(

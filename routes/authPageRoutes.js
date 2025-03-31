@@ -40,10 +40,12 @@ router.post("/register", registerUser);
 
 // GET: My Account page
 router.get("/my-account", ensureAuthenticated, async (req, res) => {
-  const decodedUser = jwt.decode(req.session.token);
+  let decodedUser;
 
-  if (!decodedUser) {
-    console.log("❌ Invalid token. Redirecting to login.");
+  try {
+    decodedUser = jwt.verify(req.session.token, process.env.JWT_SECRET);
+  } catch (err) {
+    console.log("❌ Invalid or expired token:", err.message);
     return res.redirect("/login");
   }
 
@@ -305,11 +307,11 @@ router.post(
         user: { name: req.body.full_name, email: req.body.email },
         shippingAddress: {
           street: req.body.street,
-          address_line2: req.body.address_line2 || '',
+          address_line2: req.body.address_line2 || "",
           city: req.body.city,
           postcode: req.body.postcode,
           country: req.body.country,
-          phone: req.body.phone || ''
+          phone: req.body.phone || "",
         },
         error: "There was an issue saving your address. Please try again.",
         session: req.session,
