@@ -38,47 +38,54 @@
 
     <!-- Confirmation Content -->
     <main class="container text-center confirmation-container">
-      <h1 class="display-4 mb-4 text-success">Thank You for Your Order!</h1>
+      <h1 id="order-success-heading" class="display-4 mb-4 text-success">
+        Thank You for Your Order!
+      </h1>
 
-      <% if (order && shippingAddress && orderItems.length > 0) { %>
-
-      <!-- Success Message -->
-      <p class="lead mb-3">
+      <p id="order-success-message" class="lead mb-3">
         Your awesome T-Shirts will be on their way soon,
         <strong><%= userName %></strong>!
       </p>
 
-      <hr />
-
       <!-- Order Summary -->
-      <h3 class="mt-4">Order Summary</h3>
-      <p><strong>Order Number:</strong> <%= order.order_number %></p>
-      <p><strong>Status:</strong> <%= order.status %></p>
-      <p>
+      <h3 id="order-summary-title" class="mt-4">Order Summary</h3>
+      <p id="order-number">
+        <strong>Order Number:</strong> <%= order.order_number %>
+      </p>
+      <p id="order-status"><strong>Status:</strong> <%= order.status %></p>
+      <p id="order-date">
         <strong>Order Date:</strong> <%= new
         Date(order.order_date).toLocaleDateString() %>
       </p>
-      <p><strong>Total Paid:</strong> £<%= order.total_amount.toFixed(2) %></p>
-
-      <!-- Shipping Address -->
-      <h4 class="mt-4">Shipping Address</h4>
-      <p>
-        <%= shippingAddress.full_name %><br />
-        <%= shippingAddress.street %><br />
-        <% if (shippingAddress.address_line2) { %> <%=
-        shippingAddress.address_line2 %><br />
-        <% } %> <%= shippingAddress.city %>, <%= shippingAddress.postcode %><br />
-        <%= shippingAddress.country %><br />
-        <% if (shippingAddress.phone) { %> Phone: <%= shippingAddress.phone
-        %><br />
-        <% } %> <% if (shippingAddress.email) { %> Email: <%=
-        shippingAddress.email %><br />
-        <% } %>
+      <p id="order-total">
+        <strong>Total Paid:</strong>
+        <span id="order-total-value"
+          >£<%= order.total_amount.toFixed(2) %></span
+        >
       </p>
 
+      <!-- Shipping Address -->
+      <h4 id="shipping-address-title" class="mt-4">Shipping Address</h4>
+      <div id="shipping-address">
+        <p>
+          <%= shippingAddress.full_name %><br />
+          <%= shippingAddress.street %><br />
+          <% if (shippingAddress.address_line2) { %> <%=
+          shippingAddress.address_line2 %><br />
+          <% } %> <%= shippingAddress.city %>, <%= shippingAddress.postcode
+          %><br />
+          <%= shippingAddress.country %><br />
+          <% if (shippingAddress.phone) { %> Phone: <%= shippingAddress.phone
+          %><br />
+          <% } %> <% if (shippingAddress.email) { %> Email: <%=
+          shippingAddress.email %><br />
+          <% } %>
+        </p>
+      </div>
+
       <!-- Items Purchased Table -->
-      <h4 class="mt-4">Items Purchased</h4>
-      <table class="table table-striped mt-3">
+      <h4 id="items-purchased-title" class="mt-4">Items Purchased</h4>
+      <table id="items-purchased-table" class="table table-striped mt-3">
         <thead>
           <tr>
             <th>Image</th>
@@ -89,38 +96,31 @@
           </tr>
         </thead>
         <tbody>
-          <% orderItems.forEach(item => { %>
-          <tr>
+          <% orderItems.forEach((item, index) => { %>
+          <tr id="order-item-<%= index %>">
             <td>
               <img
+                id="item-image-<%= index %>"
                 src="<%= item.image %>"
                 alt="<%= item.name %>"
                 style="width: 80px"
               />
             </td>
-            <td><%= item.name %></td>
-            <td><%= item.size %></td>
-            <td><%= item.quantity %></td>
-            <td>£<%= (item.price * item.quantity).toFixed(2) %></td>
+            <td id="item-name-<%= index %>"><%= item.name %></td>
+            <td id="item-size-<%= index %>"><%= item.size %></td>
+            <td id="item-quantity-<%= index %>"><%= item.quantity %></td>
+            <td id="item-total-<%= index %>">
+              £<%= (item.price * item.quantity).toFixed(2) %>
+            </td>
           </tr>
           <% }); %>
         </tbody>
       </table>
 
       <!-- Back to Home -->
-      <a href="/" class="btn btn-primary mt-4">Continue Shopping</a>
-
-      <% } else { %>
-
-      <!-- Error Message if no order found -->
-      <p class="text-danger mt-5">
-        ❗ We couldn't retrieve your order details. <% if (!guestCheckout) { %>
-        Please check your <a href="/my-account">order history</a>. <% } else {
-        %> Contact our support team if you have any questions. <% } %>
-      </p>
-      <a href="/" class="btn btn-primary mt-4">Back to Home</a>
-
-      <% } %>
+      <a id="continue-shopping-btn" href="/" class="btn btn-primary mt-4"
+        >Continue Shopping</a
+      >
     </main>
 
     <%- include('partials/footer') %>

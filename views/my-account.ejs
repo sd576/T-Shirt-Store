@@ -86,53 +86,53 @@
         <h2>Shipping Address</h2>
         <% if (shippingAddress) { %>
         <div class="card p-3 mb-4">
-          <p><strong>Full Name:</strong> <%= shippingAddress.full_name %></p>
+          <p id="shipping-name">
+            <strong>Full Name:</strong> <%= shippingAddress.full_name %>
+          </p>
 
-          <!-- Street with Title Case -->
-          <p>
+          <p id="shipping-street">
             <strong>Street:</strong>
             <%= shippingAddress.street.replace(/\b\w/g, l => l.toUpperCase()) %>
           </p>
 
           <% if (shippingAddress.address_line2) { %>
-          <p>
+          <p id="shipping-address2">
             <strong>Address Line 2:</strong>
             <%= shippingAddress.address_line2.replace(/\b\w/g, l =>
             l.toUpperCase()) %>
           </p>
           <% } %>
 
-          <!-- City with Title Case -->
-          <p>
+          <p id="shipping-city">
             <strong>City:</strong>
             <%= shippingAddress.city.replace(/\b\w/g, l => l.toUpperCase()) %>
           </p>
 
-          <!-- Postcode in ALL CAPS -->
-          <p>
+          <p id="shipping-postcode">
             <strong>Postcode:</strong>
             <%= shippingAddress.postcode.toUpperCase() %>
           </p>
 
-          <!-- Country with Title Case -->
-          <p>
+          <p id="shipping-country">
             <strong>Country:</strong>
             <%= shippingAddress.country.replace(/\b\w/g, l => l.toUpperCase())
             %>
           </p>
 
           <% if (shippingAddress.phone) { %>
-          <p><strong>Phone:</strong> <%= shippingAddress.phone %></p>
+          <p id="shipping-phone">
+            <strong>Phone:</strong> <%= shippingAddress.phone %>
+          </p>
           <% } %> <% if (shippingAddress.email) { %>
-          <p><strong>Email:</strong> <%= shippingAddress.email %></p>
+          <p id="shipping-email">
+            <strong>Email:</strong> <%= shippingAddress.email %>
+          </p>
           <% } %>
 
-          <!-- Edit button -->
           <a href="/my-account/edit-address" class="btn btn-warning mt-3"
             >Edit Address</a
           >
         </div>
-
         <% } else { %>
         <p>You haven't added a shipping address yet.</p>
         <a href="/my-account/edit-address" class="btn btn-primary mt-3"

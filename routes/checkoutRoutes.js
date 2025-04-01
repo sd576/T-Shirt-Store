@@ -83,7 +83,8 @@ router.post("/", (req, res) => {
 
   console.log("✅ User info stored:", req.session.userInfo);
 
-  res.redirect("/checkout/review");
+  // 🔥 This is the missing piece if nothing happens after clicking "Continue"
+  res.redirect("/checkout/payment");
 });
 
 /**
@@ -105,8 +106,7 @@ router.post("/guest", (req, res) => {
   };
 
   console.log("✅ Guest info stored:", req.session.guestInfo);
-
-  res.redirect("/checkout/review");
+  return res.redirect("/checkout/payment");
 });
 
 /**
@@ -293,7 +293,6 @@ router.post("/complete", async (req, res) => {
   } catch (error) {
     console.error("❌ Error completing checkout:", error);
     await db.run("ROLLBACK");
-    res.redirect("/checkout/review");
   }
 });
 
@@ -353,21 +352,6 @@ router.get("/review", async (req, res) => {
     userName = req.session.guestInfo?.name || "Guest";
     userEmail = req.session.guestInfo?.email || "";
   }
-
-  res.render("checkout-review", {
-    session: req.session,
-    user: {
-      name: userName,
-      email: userEmail,
-      street: shippingAddress?.street || "",
-      address_line2: shippingAddress?.address_line2 || "",
-      city: shippingAddress?.city || "",
-      postcode: shippingAddress?.postcode || "",
-      country: shippingAddress?.country || "",
-      phone: shippingAddress?.phone || "",
-    },
-    cart,
-  });
 });
 
 /**

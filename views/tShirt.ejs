@@ -29,10 +29,17 @@
 
         <!-- Product Info & Add to Cart -->
         <div class="col-md-6">
-          <h2><%= product.name %></h2>
+          <h2 id="product-heading"><%= product.name %></h2>
           <p><%= product.description %></p>
-          <p><strong>Color:</strong> <%= product.color %></p>
-          <p><strong>Price:</strong> £<%= product.price.toFixed(2) %></p>
+          <p>
+            <strong>Color:</strong>
+            <span id="product-color"><%= product.color %></span>
+          </p>
+          <p>
+            <strong>Price:</strong> £<span id="product-price"
+              ><%= product.price.toFixed(2) %></span
+            >
+          </p>
 
           <!-- Add to Cart Form -->
           <form id="addToCartForm" action="/cart/add" method="POST">
@@ -40,28 +47,30 @@
 
             <!-- Select Size -->
             <div class="mb-3">
-              <label for="size" class="form-label">Select Size</label>
-              <select class="form-select" id="size" name="size" required>
-                <% if (product && product.sizes && product.sizes.length > 0) {
-                %> <% product.sizes.forEach(sizeObj => { %>
+              <label for="product-size" class="form-label">Select Size</label>
+              <select
+                class="form-select"
+                id="product-size"
+                name="size"
+                required
+              >
+                <% product.sizes.forEach(sizeObj => { %>
                 <option
                   value="<%= sizeObj.size %>"
                   data-stock="<%= sizeObj.quantity %>"
                 >
                   <%= sizeObj.size %> (In stock: <%= sizeObj.quantity %>)
                 </option>
-                <% }); %> <% } else { %>
-                <option disabled>No sizes available</option>
-                <% } %>
+                <% }); %>
               </select>
             </div>
 
             <!-- Quantity -->
             <div class="mb-3">
-              <label for="quantity" class="form-label">Quantity</label>
+              <label for="product-quantity" class="form-label">Quantity</label>
               <input
                 type="number"
-                id="quantity"
+                id="product-quantity"
                 name="quantity"
                 class="form-control"
                 min="1"
@@ -71,7 +80,11 @@
             </div>
 
             <!-- Add to Cart Button -->
-            <button type="submit" class="btn btn-success w-100">
+            <button
+              type="submit"
+              class="btn btn-success w-100"
+              id="add-to-cart"
+            >
               Add to Cart
             </button>
           </form>

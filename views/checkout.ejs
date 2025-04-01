@@ -143,19 +143,30 @@
           <% } else { %>
           <ul class="list-group mb-3">
             <% let total = 0; %> <% cart.forEach(item => { %>
-            <li class="list-group-item d-flex justify-content-between lh-sm">
+            <li
+              class="list-group-item d-flex justify-content-between lh-sm"
+              id="order-summary-item"
+            >
               <div>
-                <h6 class="my-0"><%= item.name %> (Size: <%= item.size %>)</h6>
-                <small class="text-muted">Qty: <%= item.quantity %></small>
+                <h6 class="my-0" id="product-summary">
+                  <%= item.name %> (Size: <%= item.size %>)
+                </h6>
+                <small class="text-muted" id="product-quantity">
+                  Qty: <%= item.quantity %>
+                </small>
               </div>
-              <span class="text-muted">
+              <span class="text-muted" id="product-price">
                 £<%= (item.price * item.quantity).toFixed(2) %>
               </span>
             </li>
+
             <% total += item.price * item.quantity; %> <% }); %>
-            <li class="list-group-item d-flex justify-content-between">
+            <li
+              class="list-group-item d-flex justify-content-between"
+              id="order-total-row"
+            >
               <span>Total</span>
-              <strong>£<%= total.toFixed(2) %></strong>
+              <strong id="order-total">£<%= total.toFixed(2) %></strong>
             </li>
           </ul>
           <% } %>
