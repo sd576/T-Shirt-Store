@@ -27,8 +27,8 @@
       <section class="mb-5">
         <h2>User Details</h2>
         <div class="card p-3 mb-4">
-          <p><strong>Full Name:</strong> <%= user.name %></p>
-          <p><strong>Email:</strong> <%= user.email %></p>
+          <p id="user-fullname"><strong>Full Name:</strong> <%= user.name %></p>
+          <p id="user-email"><strong>Email:</strong> <%= user.email %></p>
 
           <!-- Optional Edit Button -->
           <!-- <a href="/my-account/edit-profile" class="btn btn-primary mt-3">Edit Profile</a> -->
@@ -51,29 +51,26 @@
           </thead>
           <tbody>
             <% orders.forEach(order => { %>
-            <tr>
-              <td><%= order.order_number %></td>
-              <td><%= order.status %></td>
-              <td><%= order.total_amount.toFixed(2) %></td>
-              <td><%= new Date(order.order_date).toLocaleDateString() %></td>
-              <td>
-                <!-- Comment out edit for now -->
-                <!-- <a href="/my-account/orders/<%= order.id %>/edit" class="btn btn-sm btn-warning">Edit</a> -->
-
-                <form
-                  action="/my-account/orders/<%= order.id %>/delete"
-                  method="POST"
-                  class="d-inline"
-                  onsubmit="return confirm('Are you sure you want to delete this order?');"
-                >
-                  <button type="submit" class="btn btn-sm btn-danger">
-                    Delete
-                  </button>
-                </form>
-              </td>
-            </tr>
+              <tr id="order-<%= order.id %>" data-order-id="<%= order.id %>">
+                <td><%= order.order_number %></td>
+                <td><%= order.status %></td>
+                <td><%= order.total_amount.toFixed(2) %></td>
+                <td><%= new Date(order.order_date).toLocaleDateString() %></td>
+                <td>
+                  <form
+                    action="/my-account/orders/<%= order.id %>/delete"
+                    method="POST"
+                    class="d-inline"
+                    onsubmit="return confirm('Are you sure you want to delete this order?');"
+                  >
+                    <button type="submit" class="btn btn-sm btn-danger">
+                      Delete
+                    </button>
+                  </form>
+                </td>
+              </tr>
             <% }) %>
-          </tbody>
+          </tbody>          
         </table>
         <% } else { %>
         <p>You haven't placed any orders yet.</p>
