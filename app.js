@@ -1,5 +1,7 @@
 import express from "express";
 import session from "express-session";
+import sqlite3 from "sqlite3";
+import { open } from "sqlite";
 import bodyParser from "body-parser";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -9,6 +11,13 @@ import setLocals from "./middleware/setLocals.js";
 // Load environment variables
 dotenv.config();
 
+// ===== SETUP __dirname =====
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// ===== CREATE EXPRESS APP =====
+const app = express();
+
 // ===== ROUTE IMPORTS =====
 // Web routes
 import indexRoutes from "./routes/indexRoutes.js";
@@ -17,67 +26,65 @@ import checkoutRoutes from "./routes/checkoutRoutes.js";
 import authPageRoutes from "./routes/authPageRoutes.js";
 
 // API routes
-import apiAuthRoutes from "./routes/apiAuthRoutes.js"; // NEW: API Auth Routes (JWT)
-import orderRoutes from "./routes/orderRoutes.js"; // API Order Routes
-import apiRoutes from "./routes/apiRoutes.js"; // Other APIs
-import apiCartRoutes from "./routes/apiCartRoutes.js"; // ✅ For Playwright test seeding
+import apiAuthRoutes from "./routes/apiAuthRoutes.js";
+import orderRoutes from "./routes/orderRoutes.js";
+import apiRoutes from "./routes/apiRoutes.js";
+import apiCartRoutes from "./routes/apiCartRoutes.js";
 import apiCheckoutRoutes from "./routes/apiCheckoutRoutes.js";
 
-// ===== SETUP __dirname =====
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// ===== INIT FUNCTION WITH DB + SERVER STARTUP =====
+const init = async () => {
+  // Open SQLite connection
+  const db = await open({
+    filename: "./database/ecommerce.db",
+    driver: sqlite3.Database,
+  });
 
-// ===== CREATE EXPRESS APP =====
-const app = express();
+  // Attach DB to app locals
+  app.locals.db = db;
 
-// ===== MIDDLEWARES =====
+  // ===== MIDDLEWARES =====
+  app.use(bodyParser.urlencoded({ extended: true }));
+  app.use(bodyParser.json());
 
-// Body parser middleware (handles form and JSON payloads)
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+  app.use(
+    session({
+      secret: "secret-key", // replace in production
+      resave: false,
+      saveUninitialized: true,
+    })
+  );
 
-// Session setup (must come before routes so session is available in them)
-app.use(
-  session({
-    secret: "secret-key", // Replace with process.env.SESSION_SECRET in production
-    resave: false,
-    saveUninitialized: true,
-  })
-);
+  app.use(setLocals);
+  app.use(express.static(path.join(__dirname, "public")));
 
-// ✅ res.locals.user middleware (after session, before routes)
-app.use(setLocals);
+  app.set("view engine", "ejs");
+  app.set("views", path.join(__dirname, "views"));
 
-// Static files (CSS, JS, Images)
-app.use(express.static(path.join(__dirname, "public")));
+  // ===== ROUTES REGISTRATION =====
+  app.use("/api/auth", apiAuthRoutes);
+  app.use("/api/orders", orderRoutes);
+  app.use("/api", apiRoutes);
+  app.use("/api/cart", apiCartRoutes);
+  app.use("/api/checkout", apiCheckoutRoutes);
 
-// EJS view engine setup
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
+  app.use("/cart", cartRoutes);
+  app.use("/checkout", checkoutRoutes);
+  app.use("/", authPageRoutes);
+  app.use("/", indexRoutes);
 
-// ===== ROUTES REGISTRATION =====
+  // ===== 404 HANDLER =====
+  app.use((req, res) => {
+    console.log(`404 hit: ${req.originalUrl}`);
+    res.status(404).render("404");
+  });
 
-// ✅ API Routes (JSON + JWT) - APIs should come before Web routes
-app.use("/api/auth", apiAuthRoutes); // API Login/Logout (JWT)
-app.use("/api/orders", orderRoutes); // API Order routes (can be JWT protected later)
-app.use("/api", apiRoutes); // Other APIs
-app.use("/api/cart", apiCartRoutes); // ✅ Adds /api/cart/add for Playwright tests
-app.use("/api/checkout", apiCheckoutRoutes);
+  // ===== START SERVER =====
+  const PORT = 3000;
+  app.listen(PORT, () => {
+    console.log(`🚀 Server is running at: http://localhost:${PORT}/`);
+  });
+};
 
-// ✅ Web App Routes (EJS + sessions)
-app.use("/cart", cartRoutes); // Cart pages (add/view cart)
-app.use("/checkout", checkoutRoutes); // Checkout pages
-app.use("/", authPageRoutes); // Login/Register/My Account (Web pages)
-app.use("/", indexRoutes); // Home, product pages, etc.
-
-// ===== 404 HANDLER =====
-app.use((req, res) => {
-  console.log(`404 hit: ${req.originalUrl}`);
-  res.status(404).render("404");
-});
-
-// ===== START SERVER =====
-const PORT = 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server is running at: http://localhost:${PORT}/`);
-});
+// ===== CALL INIT FUNCTION =====
+init();
