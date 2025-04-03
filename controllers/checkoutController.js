@@ -186,23 +186,31 @@ export const processCheckout = async (req, res) => {
     const orderId = orderResult.lastID;
     console.log(`✅ Order #${orderId} created`);
 
-    // ✅ Insert shipping address
-    await db.run(
-      `INSERT INTO shipping_addresses
-       (order_id, full_name, street, address_line2, city, postcode, country, phone, email)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        orderId,
-        fullName,
-        street,
-        "", // address_line2 optional
-        city,
-        postcode,
-        country,
-        phone || "",
-        email || "",
-      ]
+    // ✅ Check if a shipping address exists for this user+order
+    const existingAddress = await db.get(
+      `SELECT id FROM shipping_addresses WHERE order_id = ? AND user_id = ?`,
+      [orderId, user?.id || null]
     );
+
+    if (!existingAddress) {
+      await db.run(
+        `INSERT INTO shipping_addresses
+     (order_id, user_id, full_name, street, address_line2, city, postcode, country, phone, email)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          orderId,
+          user?.id || null,
+          toTitleCase(fullName),
+          toTitleCase(street),
+          "", // address_line2 optional
+          toTitleCase(city),
+          postcode.toUpperCase(),
+          toTitleCase(country),
+          "", // phone optional
+          email,
+        ]
+      );
+    }
 
     console.log(`✅ Shipping address saved for order #${orderId}`);
 
@@ -314,16 +322,50 @@ function toTitleCase(str) {
  */
 export const placeOrder = async (req, res) => {
   const cart = req.session.cart || [];
+  const user = req.session.user;
   const guest = req.session.guest;
   const paymentConfirmed = req.session.paymentConfirmed;
 
-  if (cart.length === 0 || !guest || !paymentConfirmed) {
+  if (cart.length === 0 || (!guest && !user) || !paymentConfirmed) {
     return res.status(400).json({
-      error: "Missing cart, guest info, or payment confirmation",
+      error: "Missing cart, user/guest info, or payment confirmation",
     });
   }
 
-  const { fullName, email, street, city, postcode, country } = guest;
+  const db = await dbPromise;
+
+  let fullName, email, street, city, postcode, country;
+
+  // 👤 Registered user
+  if (user) {
+    const address = await db.get(
+      `SELECT * FROM shipping_addresses WHERE user_id = ? ORDER BY id DESC LIMIT 1`,
+      [user.id]
+    );
+
+    if (!address) {
+      return res.status(400).json({
+        error: "No shipping address found for user",
+      });
+    }
+
+    fullName = address.full_name;
+    email = address.email;
+    street = address.street;
+    city = address.city;
+    postcode = address.postcode;
+    country = address.country;
+  }
+
+  // 🧑‍🤝‍🧑 Guest user
+  else if (guest) {
+    fullName = guest.fullName;
+    email = guest.email;
+    street = guest.street;
+    city = guest.city;
+    postcode = guest.postcode;
+    country = guest.country;
+  }
 
   try {
     const db = await dbPromise;
@@ -352,8 +394,8 @@ export const placeOrder = async (req, res) => {
     // ✅ Insert order (guest = no user_id)
     const orderResult = await db.run(
       `INSERT INTO orders (user_id, order_date, total_amount, status, order_number)
-       VALUES (NULL, datetime('now'), ?, ?, ?)`,
-      [totalAmount, "processing", orderNumber]
+       VALUES (?, datetime('now'), ?, ?, ?)`,
+      [user?.id || null, totalAmount, "processing", orderNumber]
     );
 
     const orderId = orderResult.lastID;
@@ -394,7 +436,11 @@ export const placeOrder = async (req, res) => {
 
     // ✅ Clear session after successful order
     req.session.cart = [];
-    req.session.guest = null;
+
+    if (!req.session.user) {
+      req.session.guest = null;
+    }
+
     req.session.paymentConfirmed = false;
 
     console.log(`✅ Order #${orderId} placed via API`);

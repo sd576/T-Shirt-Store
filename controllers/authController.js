@@ -145,6 +145,14 @@ export const apiLoginUser = async (req, res) => {
     }
 
     console.log("✅ API logged in user:", user.email);
+
+    // ✅ This is what allows the session to work across routes!
+    req.session.user = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    };
+
     res.json({
       message: "Login successful",
       user: {
@@ -158,6 +166,7 @@ export const apiLoginUser = async (req, res) => {
     res.status(500).json({ message: "Server error during login" });
   }
 };
+
 
 // ✅ Patch user account
 export const updateUserAccount = async (req, res) => {

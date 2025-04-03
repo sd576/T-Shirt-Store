@@ -6,12 +6,14 @@ import dbPromise from "../database/db.js";
 import apiAuthRoutes from "./apiAuthRoutes.js";
 import apiCartRoutes from "./apiCartRoutes.js";
 import apiCheckoutRoutes from "./apiCheckoutRoutes.js";
+import apiUserRoutes from "./apiUserRoutes.js";
 
 const router = express.Router();
 
 // ✅ Sub-routes
 router.use("/auth", apiAuthRoutes);
 router.use("/cart", apiCartRoutes);
+router.use("/user", apiUserRoutes);
 router.use("/checkout", apiCheckoutRoutes);
 
 // ✅ Inline Product Routes
