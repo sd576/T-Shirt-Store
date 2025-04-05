@@ -14,9 +14,9 @@ export const viewCart = (req, res) => {
 export const addToCart = async (req, res) => {
   const productId = parseInt(req.body.productId, 10);
   const selectedSize = req.body.size;
-  const quantity = parseInt(req.body.quantity, 10);
+  const quantity = 1;
 
-  if (!productId || !selectedSize || isNaN(quantity) || quantity < 1) {
+  if (!productId || !selectedSize) {
     console.warn("❗ Invalid cart data:", req.body);
     return res.status(400).send("Missing or invalid cart data");
   }
