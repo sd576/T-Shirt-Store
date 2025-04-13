@@ -25,6 +25,8 @@
     "sqlite3": "^5.1.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.51.1",
+    "@types/node": "^22.14.1",
     "nodemon": "^3.1.9"
   }
 }

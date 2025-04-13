@@ -6,3 +6,9 @@ build/
 coverage/
 *.log
 database/.smbdelete*
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

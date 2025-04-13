@@ -46,6 +46,21 @@ export const registerUser = async (req, res) => {
 export const apiRegisterUser = async (req, res) => {
   const { name, email, password } = req.body;
 
+  if (!name || name == "") {
+    console.error("❗ Missing name");
+    return res.status(400).json({ error: "Name can not be empty" });
+  }
+
+  if (!email || email == "") {
+    console.error("❗ Missing email");
+    return res.status(400).json({ error: "Email can not be empty" });
+  }
+
+  if (!password || password == "") {
+    console.error("❗ Missing password");
+    return res.status(400).json({ error: "Password can not be empty" });
+  }
+
   try {
     const db = await dbPromise;
 
