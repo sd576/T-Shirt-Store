@@ -62,4 +62,12 @@ test("Registration page", async ({ page, homePage, registrationPage, loginPage, 
     await expect(myAccountPage.getFullName()).toHaveText(`Username: ${someValidUsername}`);
     await expect(myAccountPage.getEmail()).toHaveText(`Email: ${someValidEmail}`);
   });
+
+  await test.step('Existing User can log out', async () => {
+    // ACT
+    await myAccountPage.logOut();
+
+    // ASSERT
+    await expect(page).toHaveURL(/\/login/);
+  });
 })
