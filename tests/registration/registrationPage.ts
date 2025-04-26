@@ -20,6 +20,12 @@ export const registrationPage = (page: Page) => ({
         await passwordInputField.fill(password);
     },
     submit: async () => {
+        const responsePromise = page.waitForResponse(response =>
+            response.url().includes('/api/auth/register') && response.status() === 201
+                && response.request().method() === 'POST'
+        );
         await page.getByRole('button', { name: 'Register' }).click();
-    }
+        await responsePromise;
+    },
+    getSuccessMessage: () => page.getByText('✅ Registration successful!')
 });

@@ -37,13 +37,13 @@
 
       <form id="registerForm" class="w-50 mx-auto" novalidate>
         <div class="mb-3">
-          <label for="name" class="form-label">Name</label>
+          <label for="name" class="form-label">Username</label>
           <input
             type="text"
             id="name"
             name="name"
             class="form-control"
-            placeholder="Enter your name"
+            placeholder="Enter your username"
             required
             autocomplete="off"
           />
@@ -109,7 +109,7 @@
         const alertContainer = document.getElementById("alert-container");
 
         nameField.addEventListener("blur", () => {
-          nameField.value = toTitleCase(nameField.value.trim());
+          nameField.value = value.trim();
         });
 
         form.addEventListener("submit", async (e) => {
