@@ -82,7 +82,7 @@
         <p>No products available.</p>
         <% } else { %> <% products.forEach(product => { %>
         <div class="col-md-4 d-flex">
-          <div class="product-card">
+          <div class="product-card" data-testid="<%= product.name.toLowerCase().replace(" ", "_") %>">
             <!-- Product Image -->
             <img
               src="<%= product.image %>"
@@ -99,7 +99,7 @@
             <p><strong>Color:</strong> <%= product.category %></p>
 
             <!-- Price -->
-            <p class="h5">£<%= product.price.toFixed(2) %></p>
+            <p class="h5" data-testid="card-price">£<%= product.price.toFixed(2) %></p>
 
             <!-- Add to Cart Form -->
             <form

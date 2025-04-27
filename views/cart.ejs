@@ -47,7 +47,7 @@
                 <% grandTotal += itemTotal; %>
 
                 <tr>
-                  <td style="width: 100px">
+                  <td style="width: 100px" data-testid="image">
                     <img
                       src="<%= item.image %>"
                       alt="<%= item.name %>"
@@ -55,10 +55,10 @@
                     />
                   </td>
                   <td>
-                    <strong><%= item.name %></strong><br />
-                    <small>Size: <%= item.size %></small>
+                    <strong data-testid="item-name"><%= item.name %></strong><br />
+                    <small data-testid="item-size">Size: <%= item.size %></small>
                   </td>
-                  <td>£<%= price.toFixed(2) %></td>
+                  <td data-testid="price">£<%= price.toFixed(2) %></td>
                   <td style="width: 150px">
                     <input
                       type="number"
@@ -67,9 +67,10 @@
                       min="1"
                       class="form-control text-center"
                       required
+                      data-testid="item-quantity"
                     />
                   </td>
-                  <td>£<%= itemTotal.toFixed(2) %></td>
+                  <td data-testid="item-total">£<%= itemTotal.toFixed(2) %></td>
                   <td>
                     <button
                       type="button"
@@ -91,7 +92,7 @@
             class="d-flex flex-column align-items-end mt-4"
             style="max-width: 300px; margin-left: auto"
           >
-            <h4 class="mb-3">Grand Total: £<%= grandTotal.toFixed(2) %></h4>
+            <h4 class="mb-3" data-testid="grand-total">Grand Total: £<%= grandTotal.toFixed(2) %></h4>
 
             <button type="submit" class="btn btn-primary w-100 mb-2">
               Update Cart
