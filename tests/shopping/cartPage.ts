@@ -1,6 +1,9 @@
 import { Page } from "@playwright/test";
 
 export const cartPage = (page: Page) => ({
+    goCheckout: async () => {
+        await page.getByRole('link', { name: 'Proceed to Checkout' }).click();
+    },
     getImage: () => {
         return page.getByTestId('image');
     },
@@ -19,6 +22,4 @@ export const cartPage = (page: Page) => ({
     getGrandTotal: () => {
         return page.getByTestId('grand-total');
     }
-    // await page.getByRole('link', { name: 'Proceed to Checkout' }).click();
-    // await page.getByRole('link', { name: 'Checkout as Guest' }).click();
 });

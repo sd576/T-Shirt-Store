@@ -68,19 +68,21 @@
       <h4 id="shipping-address-title" class="mt-4">Shipping Address</h4>
       <div id="shipping-address">
         <p>
-          <%= shippingAddress.full_name %><br />
-          <%= shippingAddress.street %><br />
-          <% if (shippingAddress.address_line2) { %> <%=
-          shippingAddress.address_line2 %><br />
-          <% } %> <%= shippingAddress.city %>, <%= shippingAddress.postcode
-          %><br />
-          <%= shippingAddress.country %><br />
-          <% if (shippingAddress.phone) { %> Phone: <%= shippingAddress.phone
-          %><br />
-          <% } %> <% if (shippingAddress.email) { %> Email: <%=
-          shippingAddress.email %><br />
+          <span data-testId="full-name"><%= shippingAddress.full_name %></span><br />
+          <span data-testId="street"><%= shippingAddress.street %></span><br />
+          <% if (shippingAddress.address_line2) { %>
+            <span data-testId="address-line2"><%= shippingAddress.address_line2 %></span><br />
           <% } %>
-        </p>
+          <span data-testId="city"><%= shippingAddress.city %></span>,
+          <span data-testId="postcode"><%= shippingAddress.postcode %></span><br />
+          <span data-testId="country"><%= shippingAddress.country %></span><br />
+          <% if (shippingAddress.phone) { %>
+            <span data-testId="phone">Phone: <%= shippingAddress.phone %></span><br />
+          <% } %>
+          <% if (shippingAddress.email) { %>
+            <span data-testId="email">Email: <%= shippingAddress.email %></span><br />
+          <% } %>
+        </p>        
       </div>
 
       <!-- Items Purchased Table -->
