@@ -21,10 +21,5 @@ export const homePage = (page: Page) => {
         getPriceFor: (itemName: string) => {
             return itemCard(itemName).getByTestId('card-price');
         }
-        // addToCart: async (itemNumber: number) => {
-        //     await page.locator(`#add-to-cart-${itemNumber}`).getByRole('button', { name: 'Add to Cart' }).click();
-        // }
-        // await page.getByRole('link', { name: 'Proceed to Checkout' }).click();
-        // await page.getByRole('link', { name: 'Checkout as Guest' }).click();
     }
 };

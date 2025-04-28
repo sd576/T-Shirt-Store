@@ -47,9 +47,5 @@ export const checkoutPage = (page: Page) => {
                 ?.replace('Pay ', '')
                 .replace(' & Complete Order', '');
         }
-        // await page.getByRole('heading', { name: 'Blue T-Shirt (Size: M)' }).click();
-        // await page.locator('#product-price').click();
-        // await page.getByText('Qty:').click();
-        // await page.locator('#order-total').click();
     }
 };
