@@ -1,0 +1,71 @@
+trigger:
+  branches:
+    include:
+      - main
+
+schedules:
+  - cron: "0 2 * * *"
+    displayName: Nightly Build
+    branches:
+      include:
+        - main
+    always: true
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  TSHIRT_STORE_REPO: https://github.com/sd576/T-Shirt-Store
+  PORT: 3000
+
+jobs:
+  - job: runTests
+    displayName: 'Run Playwright E2E Tests'
+    steps:
+      - checkout: self
+
+      - task: Bash@3
+        displayName: 'Clone T-Shirt Store App from GitHub'
+        inputs:
+          targetType: 'inline'
+          script: |
+            git clone $(TSHIRT_STORE_REPO) tshirt-store
+            cd tshirt-store
+            npm install
+
+      - task: Bash@3
+        displayName: 'Create .env file'
+        inputs:
+          targetType: 'inline'
+          script: |
+            echo "PORT=$(PORT)" > tshirt-store/.env
+
+      - task: Bash@3
+        displayName: 'Start T-Shirt Store App in Background'
+        inputs:
+          targetType: 'inline'
+          script: |
+            cd tshirt-store
+            nohup npm start &
+            sleep 5
+
+      - task: NodeTool@0
+        inputs:
+          versionSpec: '18.x'
+        displayName: 'Install Node.js 18'
+
+      - script: |
+          npm ci
+          npx playwright install
+        displayName: 'Install Playwright Dependencies'
+
+      - script: |
+          npx playwright test --reporter=list,html
+        displayName: 'Run Playwright Tests'
+
+      - task: PublishBuildArtifacts@1
+        displayName: 'Publish Playwright HTML Report'
+        inputs:
+          PathtoPublish: 'playwright-report'
+          ArtifactName: 'PlaywrightReport'
+          publishLocation: 'Container'

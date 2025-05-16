@@ -1,0 +1,28 @@
+// All tests:
+npx playwright test --headed --workers=1
+
+
+
+// UI Positive tests
+
+npx playwright test tests/UI_Positive_Tests --headed --workers=1
+
+npx playwright test tests/UI_Positive_Tests/guestCheckoutE2E_UI.spec.ts --headed --workers=1 --debug
+
+// Trace on
+npx playwright test tests/UI_Positive_Tests/registerAndCheckout_UI.spec.ts --trace on
+
+npx playwright show-trace playwright-report/data/e6ada6b3b0abe9299e493d9987a17b7923b46cb2.zip
+
+
+
+
+// API Positive tests
+
+npx playwright test tests/API_Positive_Tests --headed
+
+npx playwright test tests/API_Positive_Tests/guestCheckoutAPI.spec.ts --headed --workers=1
+
+npx playwright test tests/API_Positive_Tests/guestCheckoutAPI.spec.ts --headed --workers=1 --debug
+
+
