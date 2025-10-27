@@ -12,43 +12,31 @@ export const viewCart = (req, res) => {
 
 // ✅ Add to Cart
 export const addToCart = async (req, res) => {
-  const productId = parseInt(req.body.productId, 10);
-  const selectedSize = req.body.size;
-  const quantity = parseInt(req.body.quantity, 10);
-
-  if (!productId || !selectedSize || isNaN(quantity) || quantity < 1) {
-    console.warn("❗ Invalid cart data:", req.body);
-    return res.status(400).send("Missing or invalid cart data");
-  }
-
   try {
     const db = await dbPromise;
 
-    // Get the product details
-    const product = await db.get(
-      "SELECT * FROM products WHERE id = ?",
-      productId
-    );
+    // Normalize + defaults
+    const pid = Number(req.body.productId);
+    const selectedSize =
+      typeof req.body.size === "string" ? req.body.size.trim() : "";
+    let qty = Number(req.body.quantity ?? 1);
+    if (!Number.isFinite(qty) || qty < 1) qty = 1;
 
-    if (!product) {
-      console.warn(`❗ Product not found for ID: ${productId}`);
-      return res.status(404).send("Product not found");
+    if (!Number.isInteger(pid) || pid <= 0 || !selectedSize) {
+      console.warn("❗ Invalid cart data (shape):", req.body);
+      return res.status(400).send("Missing or invalid cart data");
     }
 
-    // Get the stock level for the selected size
+    // Get product
+    const product = await db.get("SELECT * FROM products WHERE id = ?", pid);
+    if (!product) return res.status(404).send("Product not found");
+
+    // Validate size and stock from product_stock
     const stock = await db.get(
       "SELECT quantity FROM product_stock WHERE product_id = ? AND size = ?",
-      [productId, selectedSize]
+      [pid, selectedSize]
     );
-
-    if (!stock || stock.quantity < quantity) {
-      console.warn(
-        `❗ Not enough stock for "${
-          product.name
-        }" (Size: ${selectedSize}). Requested: ${quantity}, Available: ${
-          stock ? stock.quantity : 0
-        }`
-      );
+    if (!stock || stock.quantity < qty) {
       return res
         .status(400)
         .send(
@@ -58,39 +46,26 @@ export const addToCart = async (req, res) => {
         );
     }
 
-    // Initialize cart if it doesn't exist yet
-    if (!req.session.cart) {
-      req.session.cart = [];
-    }
-
-    // Check if item already exists in the cart
-    const existingItem = req.session.cart.find(
-      (item) => item.productId === product.id && item.size === selectedSize
+    if (!req.session.cart) req.session.cart = [];
+    const existing = req.session.cart.find(
+      (i) => i.productId === product.id && i.size === selectedSize
     );
-
-    if (existingItem) {
-      existingItem.quantity += quantity;
-      console.log(
-        `✅ Updated "${product.name}" (Size: ${selectedSize}) in cart. New Qty: ${existingItem.quantity}`
-      );
-    } else {
+    if (existing) existing.quantity += qty;
+    else {
       req.session.cart.push({
         productId: product.id,
         name: product.name,
         image: product.image,
         size: selectedSize,
-        quantity: quantity,
+        quantity: qty,
         price: product.price,
       });
-      console.log(
-        `✅ Added "${product.name}" (Size: ${selectedSize}, Qty: ${quantity}) to cart`
-      );
     }
 
-    res.redirect("/cart");
+    return res.redirect("/cart");
   } catch (err) {
     console.error("❌ Error adding to cart:", err);
-    res.status(500).send("Internal Server Error");
+    return res.status(500).send("Internal Server Error");
   }
 };
 
