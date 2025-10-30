@@ -6,3 +6,9 @@ build/
 coverage/
 *.log
 database/.smbdelete*
+
+# T-SHIRT-STORE/.gitignore
+playwright/
+playwright-report/
+test-results/
+tests/

@@ -1,4 +1,5 @@
 // app.js
+import "dotenv/config";
 import express from "express";
 import session from "express-session";
 import sqlite3 from "sqlite3";
