@@ -1,14 +1,21 @@
+# Node
 node_modules/
 .env
-.DS_Store
-dist/
-build/
-coverage/
-*.log
-database/.smbdelete*
 
-# T-SHIRT-STORE/.gitignore
-playwright/
-playwright-report/
+# Database
+database/ecommerce.db
+
+# Playwright artefacts
 test-results/
-tests/
+playwright-report/
+blob-report/
+playwright/.cache/
+tmp/
+videos/
+screenshots/
+*.zip
+*.webm
+*.mp4
+
+# Ignore screenshots produced during tests
+**/*.png
