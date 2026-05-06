@@ -62,6 +62,17 @@ Run the following two commands (shown with what they do):
 - **`npm start`** → Starts the server.
 - **`npm run sqlite`** → Opens the SQLite CLI.
 
+After a fresh re-seed of the database, run the following SQL Query in SQLite:
+
+SELECT
+p.id AS product_id,
+p.name,
+ps.size,
+ps.quantity AS stock
+FROM product_stock ps
+JOIN products p ON ps.product_id = p.id
+ORDER BY p.id, ps.size;
+
 Once the server is running, open your browser and go to:
 
 - **`http://localhost:3000/`** → This is the homepage of the T-Shirt Store website.

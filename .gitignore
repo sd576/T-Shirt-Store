@@ -1,5 +1,7 @@
+# Node
 node_modules/
 .env
+<<<<<<< HEAD
 .DS_Store
 dist/
 build/
@@ -18,3 +20,23 @@ test-results/
 playwright-report/
 test_artifacts/
 tmp/
+=======
+
+# Database
+database/ecommerce.db
+
+# Playwright artefacts
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+tmp/
+videos/
+screenshots/
+*.zip
+*.webm
+*.mp4
+
+# Ignore screenshots produced during tests
+**/*.png
+>>>>>>> e548d09eb0f9bdfc2b82da18ca5d897ca6cab564
