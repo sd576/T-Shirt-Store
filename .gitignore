@@ -5,4 +5,16 @@ dist/
 build/
 coverage/
 *.log
+
+# DB files
+database/*.db
+database/*.sqlite
+
+# macOS temp files
 database/.smbdelete*
+
+# Playwright / test output
+test-results/
+playwright-report/
+test_artifacts/
+tmp/
